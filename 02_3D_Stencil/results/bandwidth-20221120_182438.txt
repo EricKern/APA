@@ -1,0 +1,131 @@
+# Devices
+
+## [0] `NVIDIA GeForce RTX 2080 Ti`
+* SM Version: 750 (PTX Version: 750)
+* Number of SMs: 68
+* SM Default Clock Rate: 1545 MHz
+* Global Memory: 10846 MiB Free / 11019 MiB Total
+* Global Memory Bus Peak: 616 GB/sec (352-bit DDR @7000MHz)
+* Max Shared Memory: 64 KiB/SM, 48 KiB/Block
+* L2 Cache Size: 5632 KiB
+* Maximum Active Blocks: 16/SM
+* Maximum Active Threads: 1024/SM, 1024/Block
+* Available Registers: 65536/SM, 65536/Block
+* ECC Enabled: No
+
+# Log
+
+```
+Run:  [1/24] memcopyd2d [Device=0 T=I32 elem_per_thread=2^0]
+Pass: Cold: 0.393103ms GPU, 0.398917ms CPU, 0.55s total GPU, 0.60s total wall, 1408x 
+Pass: Batch: 0.393964ms GPU, 0.56s total GPU, 0.56s total wall, 1409x
+Run:  [2/24] memcopyd2d [Device=0 T=I32 elem_per_thread=2^1]
+Pass: Cold: 0.397107ms GPU, 0.402604ms CPU, 0.50s total GPU, 0.54s total wall, 1260x 
+Pass: Batch: 0.393905ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [3/24] memcopyd2d [Device=0 T=I32 elem_per_thread=2^2]
+Pass: Cold: 0.396974ms GPU, 0.402492ms CPU, 0.50s total GPU, 0.54s total wall, 1260x 
+Pass: Batch: 0.393926ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [4/24] memcopyd2d [Device=0 T=I32 elem_per_thread=2^3]
+Pass: Cold: 0.397120ms GPU, 0.402904ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393920ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [5/24] memcopyd2d [Device=0 T=int2 elem_per_thread=2^0]
+Pass: Cold: 0.396864ms GPU, 0.402744ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393932ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [6/24] memcopyd2d [Device=0 T=int2 elem_per_thread=2^1]
+Pass: Cold: 0.397161ms GPU, 0.403264ms CPU, 0.50s total GPU, 0.55s total wall, 1259x 
+Pass: Batch: 0.393951ms GPU, 0.53s total GPU, 0.53s total wall, 1350x
+Run:  [7/24] memcopyd2d [Device=0 T=int2 elem_per_thread=2^2]
+Pass: Cold: 0.396965ms GPU, 0.402855ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393919ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [8/24] memcopyd2d [Device=0 T=int2 elem_per_thread=2^3]
+Pass: Cold: 0.397156ms GPU, 0.403033ms CPU, 0.50s total GPU, 0.55s total wall, 1259x 
+Pass: Batch: 0.393938ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [9/24] memcopyd2d [Device=0 T=int4 elem_per_thread=2^0]
+Pass: Cold: 0.397012ms GPU, 0.402867ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393973ms GPU, 0.53s total GPU, 0.53s total wall, 1346x
+Run:  [10/24] memcopyd2d [Device=0 T=int4 elem_per_thread=2^1]
+Pass: Cold: 0.397070ms GPU, 0.402900ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393756ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [11/24] memcopyd2d [Device=0 T=int4 elem_per_thread=2^2]
+Pass: Cold: 0.396607ms GPU, 0.402516ms CPU, 0.50s total GPU, 0.55s total wall, 1261x 
+Pass: Batch: 0.393676ms GPU, 0.53s total GPU, 0.53s total wall, 1347x
+Run:  [12/24] memcopyd2d [Device=0 T=int4 elem_per_thread=2^3]
+Pass: Cold: 0.396800ms GPU, 0.402684ms CPU, 0.50s total GPU, 0.55s total wall, 1261x 
+Pass: Batch: 0.393657ms GPU, 0.53s total GPU, 0.53s total wall, 1346x
+Run:  [13/24] copyd2d [Device=0 T=I32 elem_per_thread=2^0]
+Pass: Cold: 0.396919ms GPU, 0.402728ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393773ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [14/24] copyd2d [Device=0 T=I32 elem_per_thread=2^1]
+Pass: Cold: 0.396842ms GPU, 0.402672ms CPU, 0.50s total GPU, 0.55s total wall, 1260x 
+Pass: Batch: 0.393643ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [15/24] copyd2d [Device=0 T=I32 elem_per_thread=2^2]
+Pass: Cold: 0.396823ms GPU, 0.402353ms CPU, 0.50s total GPU, 0.54s total wall, 1261x 
+Pass: Batch: 0.393732ms GPU, 0.53s total GPU, 0.53s total wall, 1341x
+Run:  [16/24] copyd2d [Device=0 T=I32 elem_per_thread=2^3]
+Pass: Cold: 0.397744ms GPU, 0.403335ms CPU, 0.50s total GPU, 0.54s total wall, 1258x 
+Pass: Batch: 0.394519ms GPU, 0.53s total GPU, 0.53s total wall, 1342x
+Run:  [17/24] copyd2d [Device=0 T=int2 elem_per_thread=2^0]
+Pass: Cold: 0.396198ms GPU, 0.401709ms CPU, 0.50s total GPU, 0.54s total wall, 1262x 
+Pass: Batch: 0.393321ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [18/24] copyd2d [Device=0 T=int2 elem_per_thread=2^1]
+Pass: Cold: 0.396134ms GPU, 0.401624ms CPU, 0.50s total GPU, 0.54s total wall, 1263x 
+Pass: Batch: 0.393168ms GPU, 0.53s total GPU, 0.53s total wall, 1347x
+Run:  [19/24] copyd2d [Device=0 T=int2 elem_per_thread=2^2]
+Pass: Cold: 0.396339ms GPU, 0.402103ms CPU, 0.50s total GPU, 0.55s total wall, 1262x 
+Pass: Batch: 0.393418ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [20/24] copyd2d [Device=0 T=int2 elem_per_thread=2^3]
+Pass: Cold: 0.396811ms GPU, 0.402607ms CPU, 0.50s total GPU, 0.55s total wall, 1261x 
+Pass: Batch: 0.393808ms GPU, 0.53s total GPU, 0.53s total wall, 1343x
+Run:  [21/24] copyd2d [Device=0 T=int4 elem_per_thread=2^0]
+Pass: Cold: 0.395286ms GPU, 0.401161ms CPU, 0.50s total GPU, 0.55s total wall, 1265x 
+Pass: Batch: 0.392731ms GPU, 0.53s total GPU, 0.53s total wall, 1348x
+Run:  [22/24] copyd2d [Device=0 T=int4 elem_per_thread=2^1]
+Pass: Cold: 0.395628ms GPU, 0.401480ms CPU, 0.50s total GPU, 0.55s total wall, 1264x 
+Pass: Batch: 0.392994ms GPU, 0.53s total GPU, 0.53s total wall, 1349x
+Run:  [23/24] copyd2d [Device=0 T=int4 elem_per_thread=2^2]
+Pass: Cold: 0.396100ms GPU, 0.401883ms CPU, 0.50s total GPU, 0.55s total wall, 1263x 
+Pass: Batch: 0.393383ms GPU, 0.53s total GPU, 0.53s total wall, 1345x
+Run:  [24/24] copyd2d [Device=0 T=int4 elem_per_thread=2^3]
+Pass: Cold: 0.396761ms GPU, 0.402424ms CPU, 0.50s total GPU, 0.55s total wall, 1261x 
+Pass: Batch: 0.393904ms GPU, 0.53s total GPU, 0.53s total wall, 1340x
+```
+
+# Benchmark Results
+
+## memcopyd2d
+
+### [0] NVIDIA GeForce RTX 2080 Ti
+
+|  T   | elem_per_thread | NumElements |  DataSize   | Samples |  CPU Time  | Noise |  GPU Time  | Noise | Elem/s  | GlobalMem BW | BWUtil | Samples | Batch GPU  |
+|------|-----------------|-------------|-------------|---------|------------|-------|------------|-------|---------|--------------|--------|---------|------------|
+|  I32 |         2^0 = 1 |    26214400 | 100.000 MiB |   1408x | 398.917 us | 1.74% | 393.103 us | 0.99% | 66.686G | 533.487 GB/s | 86.61% |   1409x | 393.964 us |
+|  I32 |         2^1 = 2 |    26214400 | 100.000 MiB |   1260x | 402.604 us | 1.39% | 397.107 us | 0.10% | 66.013G | 528.108 GB/s | 85.73% |   1345x | 393.905 us |
+|  I32 |         2^2 = 4 |    26214400 | 100.000 MiB |   1260x | 402.492 us | 1.40% | 396.974 us | 0.11% | 66.035G | 528.284 GB/s | 85.76% |   1345x | 393.926 us |
+|  I32 |         2^3 = 8 |    26214400 | 100.000 MiB |   1260x | 402.904 us | 1.46% | 397.120 us | 0.10% | 66.011G | 528.091 GB/s | 85.73% |   1345x | 393.920 us |
+| int2 |         2^0 = 1 |    13107200 | 100.000 MiB |   1260x | 402.744 us | 1.49% | 396.864 us | 0.12% | 33.027G | 528.430 GB/s | 85.78% |   1345x | 393.932 us |
+| int2 |         2^1 = 2 |    13107200 | 100.000 MiB |   1259x | 403.264 us | 2.37% | 397.161 us | 0.09% | 33.002G | 528.036 GB/s | 85.72% |   1350x | 393.951 us |
+| int2 |         2^2 = 4 |    13107200 | 100.000 MiB |   1260x | 402.855 us | 1.49% | 396.965 us | 0.11% | 33.019G | 528.296 GB/s | 85.76% |   1345x | 393.919 us |
+| int2 |         2^3 = 8 |    13107200 | 100.000 MiB |   1259x | 403.033 us | 1.49% | 397.156 us | 0.09% | 33.003G | 528.042 GB/s | 85.72% |   1345x | 393.938 us |
+| int4 |         2^0 = 1 |     6553600 | 100.000 MiB |   1260x | 402.867 us | 1.48% | 397.012 us | 0.11% | 16.507G | 528.234 GB/s | 85.75% |   1346x | 393.973 us |
+| int4 |         2^1 = 2 |     6553600 | 100.000 MiB |   1260x | 402.900 us | 1.47% | 397.070 us | 0.10% | 16.505G | 528.156 GB/s | 85.74% |   1345x | 393.756 us |
+| int4 |         2^2 = 4 |     6553600 | 100.000 MiB |   1261x | 402.516 us | 1.50% | 396.607 us | 0.14% | 16.524G | 528.773 GB/s | 85.84% |   1347x | 393.676 us |
+| int4 |         2^3 = 8 |     6553600 | 100.000 MiB |   1261x | 402.684 us | 1.49% | 396.800 us | 0.13% | 16.516G | 528.516 GB/s | 85.80% |   1346x | 393.657 us |
+
+## copyd2d
+
+### [0] NVIDIA GeForce RTX 2080 Ti
+
+|  T   | elem_per_thread | NumElements |  DataSize   | Samples |  CPU Time  | Noise |  GPU Time  | Noise | Elem/s  | GlobalMem BW | BWUtil | Samples | Batch GPU  |
+|------|-----------------|-------------|-------------|---------|------------|-------|------------|-------|---------|--------------|--------|---------|------------|
+|  I32 |         2^0 = 1 |    26214400 | 100.000 MiB |   1260x | 402.728 us | 1.47% | 396.919 us | 0.11% | 66.045G | 528.357 GB/s | 85.77% |   1345x | 393.773 us |
+|  I32 |         2^1 = 2 |    26214400 | 100.000 MiB |   1260x | 402.672 us | 1.47% | 396.842 us | 0.12% | 66.058G | 528.460 GB/s | 85.79% |   1345x | 393.643 us |
+|  I32 |         2^2 = 4 |    26214400 | 100.000 MiB |   1261x | 402.353 us | 1.40% | 396.823 us | 0.12% | 66.061G | 528.485 GB/s | 85.79% |   1341x | 393.732 us |
+|  I32 |         2^3 = 8 |    26214400 | 100.000 MiB |   1258x | 403.335 us | 1.41% | 397.744 us | 0.12% | 65.908G | 527.261 GB/s | 85.59% |   1342x | 394.519 us |
+| int2 |         2^0 = 1 |    13107200 | 100.000 MiB |   1262x | 401.709 us | 1.40% | 396.198 us | 0.15% | 33.082G | 529.319 GB/s | 85.93% |   1345x | 393.321 us |
+| int2 |         2^1 = 2 |    13107200 | 100.000 MiB |   1263x | 401.624 us | 1.39% | 396.134 us | 0.14% | 33.088G | 529.404 GB/s | 85.94% |   1347x | 393.168 us |
+| int2 |         2^2 = 4 |    13107200 | 100.000 MiB |   1262x | 402.103 us | 1.56% | 396.339 us | 0.15% | 33.071G | 529.131 GB/s | 85.90% |   1345x | 393.418 us |
+| int2 |         2^3 = 8 |    13107200 | 100.000 MiB |   1261x | 402.607 us | 1.47% | 396.811 us | 0.12% | 33.031G | 528.501 GB/s | 85.80% |   1343x | 393.808 us |
+| int4 |         2^0 = 1 |     6553600 | 100.000 MiB |   1265x | 401.161 us | 1.49% | 395.286 us | 0.10% | 16.579G | 530.540 GB/s | 86.13% |   1348x | 392.731 us |
+| int4 |         2^1 = 2 |     6553600 | 100.000 MiB |   1264x | 401.480 us | 1.49% | 395.628 us | 0.11% | 16.565G | 530.082 GB/s | 86.05% |   1349x | 392.994 us |
+| int4 |         2^2 = 4 |     6553600 | 100.000 MiB |   1263x | 401.883 us | 1.47% | 396.100 us | 0.15% | 16.545G | 529.450 GB/s | 85.95% |   1345x | 393.383 us |
+| int4 |         2^3 = 8 |     6553600 | 100.000 MiB |   1261x | 402.424 us | 1.43% | 396.761 us | 0.13% | 16.518G | 528.568 GB/s | 85.81% |   1340x | 393.904 us |
