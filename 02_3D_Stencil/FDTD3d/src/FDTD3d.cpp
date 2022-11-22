@@ -102,6 +102,7 @@ bool runTest(int argc, const char **argv) {
   float *input;
   float *coeff;
 
+  float constant_value = 0.25f;
   int defaultDim;
   int dimx;
   int dimy;
@@ -165,6 +166,11 @@ bool runTest(int argc, const char **argv) {
   timesteps = k_timesteps_default;
 
   // Parse command line arguments
+  if (checkCmdLineFlag(argc, argv, "c_value")) {
+    constant_value =
+        CLAMP(getCmdLineArgumentFloat(argc, argv, "c_value"), k_dim_min, k_dim_max);
+  }
+
   if (checkCmdLineFlag(argc, argv, "dimx")) {
     dimx =
         CLAMP(getCmdLineArgumentInt(argc, argv, "dimx"), k_dim_min, k_dim_max);
@@ -208,8 +214,8 @@ bool runTest(int argc, const char **argv) {
 
   // Generate data
   printf(" generateRandomData\n\n");
-  generateRandomData(input, outerDimx, outerDimy, outerDimz, lowerBound,
-                     upperBound);
+  generateRandomPaddedData(input, outerDimx, outerDimy, outerDimz, lowerBound,
+                     upperBound, radius, constant_value);
   printf(
       "FDTD on %d x %d x %d volume with symmetric filter radius %d for %d "
       "timesteps...\n\n",

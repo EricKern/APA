@@ -50,6 +50,30 @@ void generateRandomData(float *data, const int dimx, const int dimy,
   }
 }
 
+void generateRandomPaddedData(float *data, const int dimx, const int dimy,
+                              const int dimz, const float lowerBound,
+                              const float upperBound, const int radius, const float c_value) {
+  srand(0);
+
+  for (int iz = 0; iz < dimz; iz++) {
+    for (int iy = 0; iy < dimy; iy++) {
+      for (int ix = 0; ix < dimx; ix++) {
+        if(iz < radius || iz > dimz - radius ||
+           iy < radius || iy > dimy - radius ||
+           ix < radius || ix > dimx - radius){
+          *data = c_value;
+        }
+        else{
+          *data = (float)(lowerBound +
+                ((float)rand() / (float)RAND_MAX) *
+                    (upperBound - lowerBound));
+        }
+        ++data;
+      }
+    }
+  }
+}
+
 void generatePatternData(float *data, const int dimx, const int dimy,
                          const int dimz, const float lowerBound,
                          const float upperBound) {

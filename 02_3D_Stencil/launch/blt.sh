@@ -1,3 +1,3 @@
 #!/bin/bash
 
-make -C ../build
+make -C ../FDTD3d

@@ -26,15 +26,17 @@
  */
 
 #include "FDTD3dGPU.h"
+#include "FDTD3d.h"
 #include <cooperative_groups.h>
 
 namespace cg = cooperative_groups;
 
 // Note: If you change the RADIUS, you should also change the unrolling below
-#define RADIUS 4
+//#define RADIUS 4
 
-__constant__ float stencil[RADIUS + 1];
+__constant__ float stencil[k_radius_max + 1];
 
+template <int RADIUS>
 __global__ void FiniteDifferencesKernel(float *output, const float *input,
                                         const int dimx, const int dimy,
                                         const int dimz) {
@@ -101,7 +103,7 @@ __global__ void FiniteDifferencesKernel(float *output, const float *input,
 
     behind[0] = current;
     current = infront[0];
-#pragma unroll 4
+#pragma unroll RADIUS
 
     for (int i = 0; i < RADIUS - 1; i++) infront[i] = infront[i + 1];
 
@@ -122,21 +124,24 @@ __global__ void FiniteDifferencesKernel(float *output, const float *input,
     // Halo above & below
     if (ltidy < RADIUS) {
       tile[ltidy][tx] = input[outputIndex - RADIUS * stride_y];
-      tile[ltidy + worky + RADIUS][tx] = input[outputIndex + worky * stride_y];
+    }
+    if (ltidy >= blockDim.y - RADIUS) {
+      tile[ltidy + RADIUS + RADIUS][tx] = input[outputIndex + RADIUS * stride_y];
     }
 
     // Halo left & right
     if (ltidx < RADIUS) {
       tile[ty][ltidx] = input[outputIndex - RADIUS];
-      tile[ty][ltidx + workx + RADIUS] = input[outputIndex + workx];
     }
-
+    if (ltidx >= blockDim.x - RADIUS){
+      tile[ty][ltidx + RADIUS + RADIUS] = input[outputIndex + RADIUS];
+    }
     tile[ty][tx] = current;
     cg::sync(cta);
 
     // Compute the output value
     float value = stencil[0] * current;
-#pragma unroll 4
+#pragma unroll RADIUS
 
     for (int i = 1; i <= RADIUS; i++) {
       value +=
@@ -148,3 +153,139 @@ __global__ void FiniteDifferencesKernel(float *output, const float *input,
     if (validw) output[outputIndex] = value;
   }
 }
+
+//========================================
+// Output caching for cubic stencil mask
+//========================================
+__constant__ float stencil2[2* k_radius_max + 1][2* k_radius_max + 1][2* k_radius_max + 1];
+
+template <int RADIUS>
+__global__ void FiniteDifferencesKernel2(float *output, const float *input,
+                                        const int dimx, const int dimy,
+                                        const int dimz) {
+  bool validr = true;
+  bool validw = true;
+  const int gtidx = blockIdx.x * blockDim.x + threadIdx.x;
+  const int gtidy = blockIdx.y * blockDim.y + threadIdx.y;
+  const int ltidx = threadIdx.x;
+  const int ltidy = threadIdx.y;
+  const int workx = blockDim.x;
+  const int worky = blockDim.y;
+  // Handle to thread block group
+  cg::thread_block cta = cg::this_thread_block();
+  __shared__ float tile[k_blockDimMaxY + 2 * RADIUS][k_blockDimX + 2 * RADIUS];
+
+  const int stride_y = dimx + 2 * RADIUS;
+  const int stride_z = stride_y * (dimy + 2 * RADIUS);
+
+  int inputIndex = 0;
+  int outputIndex = 0;
+
+  // Advance inputIndex to start of inner square at lowest slice
+  inputIndex += RADIUS * stride_y + RADIUS;
+
+  // Advance inputIndex to target element
+  inputIndex += gtidy * stride_y + gtidx;
+
+  float out_buf[2*RADIUS + 1];
+
+  const int tx = ltidx + RADIUS;
+  const int ty = ltidy + RADIUS;
+
+  outputIndex = inputIndex;
+  // Advance outputIndex output slice hight
+  outputIndex += -RADIUS * stride_z;
+
+  // Check in bounds
+  if ((gtidx >= dimx + RADIUS) || (gtidy >= dimy + RADIUS)) validr = false;
+
+  if ((gtidx >= dimx) || (gtidy >= dimy)) validw = false;
+
+  // Init output buffer
+  for (int i = 0; i < 2*RADIUS+1; i++){
+    out_buf[i] = 0;
+  }
+  
+
+
+  // if (validr) infront[i] = input[inputIndex];
+  // inputIndex += stride_z;
+  // // Advance the slice (move the thread-front)
+  // for (int i = RADIUS - 1; i > 0; i--) behind[i] = behind[i - 1];
+
+  // behind[0] = current;
+  // current = infront[0];
+
+// Step through the xy-planes
+#pragma unroll 9
+
+  for (int iz = 0; iz < dimz + 2*RADIUS+1; iz++) {
+    // Update the data slice in the local tile
+    // Halo above
+    if (ltidy < RADIUS) {
+      tile[ltidy][tx] = input[inputIndex - RADIUS * stride_y];
+    }
+    // Halo below
+    if (ltidy >= blockDim.y - RADIUS) {
+      tile[ltidy + 2*RADIUS][tx] = input[inputIndex + RADIUS * stride_y];
+    }
+    // Halo left
+    if (ltidx < RADIUS) {
+      tile[ty][ltidx] = input[inputIndex - RADIUS];
+    }
+    // Halo right
+    if (ltidx >= blockDim.x - RADIUS){
+      tile[ty][ltidx + 2*RADIUS] = input[inputIndex + RADIUS];
+    }
+
+    // Corners
+    // top left
+    if (ltidy < RADIUS && ltidx < RADIUS) {
+      tile[ltidy][ltidx] = input[inputIndex - RADIUS * stride_y - RADIUS];
+    }
+    // top right
+    if (ltidy < RADIUS && ltidx >= blockDim.x - RADIUS) {
+      tile[ltidy][ltidx + 2*RADIUS] = input[inputIndex - RADIUS * stride_y + RADIUS];
+    }
+    // bottom left
+    if (ltidy >= blockDim.y - RADIUS && ltidx < RADIUS) {
+      tile[ltidy + 2*RADIUS][ltidx] = input[inputIndex + RADIUS * stride_y - RADIUS];
+    }
+    // bottom right
+    if (ltidy >= blockDim.y - RADIUS && ltidx >= blockDim.x - RADIUS) {
+      tile[ltidy + 2*RADIUS][ltidx + 2*RADIUS] = input[inputIndex + RADIUS * stride_y + RADIUS];
+    }
+
+    tile[ty][tx] = input[inputIndex];
+    cg::sync(cta);
+
+    // with every layer we want to calculate partial results of max 2*RADIUS + 1
+    // other layers
+    // check if input slice is in bottom Halo 
+    for (int stencil_z = -RADIUS; stencil_z <= RADIUS; stencil_z++){
+      for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
+        for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
+            out_buf[RADIUS+stencil_z] += tile[ty+stencil_y][tx+stencil_y]
+                      * stencil2[RADIUS+stencil_z][RADIUS+stencil_y][RADIUS+stencil_x];
+          
+        }
+      }
+    }
+
+    // if out_buffer is not full
+    if (iz < 2*RADIUS + 1){
+      if (validw) output[outputIndex] = out_buf[2*RADIUS + 1];
+      for (size_t i = 2*RADIUS; i > 0; --i){
+        out_buf[i] = out_buf[i-1];
+      }
+    }
+    out_buf[0] = 0;
+    
+    inputIndex += stride_z;
+    outputIndex += stride_z;
+    
+    cg::sync(cta);
+
+  }
+}
+

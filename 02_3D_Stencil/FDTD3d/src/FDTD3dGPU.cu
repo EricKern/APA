@@ -26,6 +26,7 @@
  */
 
 #include "FDTD3dGPU.h"
+#include "FDTD3d.h"
 
 #include <iostream>
 #include <algorithm>
@@ -33,6 +34,8 @@
 #include <helper_cuda.h>
 
 #include "FDTD3dGPUKernel.cuh"
+
+#define GPU_PROFILING
 
 bool getTargetDeviceGlobalMemSize(memsize_t *result, const int argc,
                                   const char **argv) {
@@ -92,8 +95,8 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
 #endif
 
   // Check the radius is valid
-  if (radius != RADIUS) {
-    printf("radius is invalid, must be %d - see kernel for details.\n", RADIUS);
+  if (k_radius_min > radius && radius > k_radius_max) {
+    printf("radius is invalid, must between %d and %d \n", k_radius_min, k_radius_max);
     exit(EXIT_FAILURE);
   }
 
@@ -127,7 +130,7 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
 
   // Check the device limit on the number of threads
   struct cudaFuncAttributes funcAttrib;
-  checkCudaErrors(cudaFuncGetAttributes(&funcAttrib, FiniteDifferencesKernel));
+  checkCudaErrors(cudaFuncGetAttributes(&funcAttrib, FiniteDifferencesKernel<4>));
 
   userBlockSize = MIN(userBlockSize, funcAttrib.maxThreadsPerBlock);
 
@@ -145,9 +148,9 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
   printf(" set grid size to %dx%d\n", dimGrid.x, dimGrid.y);
 
   // Check the block size is valid
-  if (dimBlock.x < RADIUS || dimBlock.y < RADIUS) {
+  if (dimBlock.x < radius || dimBlock.y < radius) {
     printf("invalid block size, x (%d) and y (%d) must be >= radius (%d).\n",
-           dimBlock.x, dimBlock.y, RADIUS);
+           dimBlock.x, dimBlock.y, radius);
     exit(EXIT_FAILURE);
   }
 
@@ -188,8 +191,51 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
 
     // Launch the kernel
     printf("launch kernel\n");
-    FiniteDifferencesKernel<<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                   dimy, dimz);
+    switch (radius)
+    {
+    case 1:  
+      FiniteDifferencesKernel2<1><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 2:
+      FiniteDifferencesKernel2<2><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 3:
+      FiniteDifferencesKernel2<3><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 4:
+      FiniteDifferencesKernel2<4><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 5:
+      FiniteDifferencesKernel2<5><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 6:
+      FiniteDifferencesKernel2<6><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 7:
+      FiniteDifferencesKernel2<7><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 8:
+      FiniteDifferencesKernel2<8><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 9:
+      FiniteDifferencesKernel2<9><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    case 10:
+      FiniteDifferencesKernel2<10><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
+                                                    dimy, dimz);
+      break;
+    default:
+      break;
+    }
 
     // Toggle the buffers
     // Visual Studio 2005 does not like std::swap
