@@ -1,4 +1,3 @@
-CUDA error at src/FDTD3dGPU.cu:256 code=700(cudaErrorIllegalAddress) "cudaDeviceSynchronize()" 
 ../FDTD3d/FDTD3d Starting...
 
 Set-up, based upon target device GMEM size...
@@ -11,25 +10,22 @@ GPU Device 0: "Turing" with compute capability 7.5
 
 FDTD on 376 x 376 x 376 volume with symmetric filter radius 9 for 5 timesteps...
 
-fdtdReference...
- calloc intermediate
- Host FDTD loop
-	t = 0
-	t = 1
-	t = 2
-	t = 3
-	t = 4
-
-fdtdReference complete
+fdtdReference2...
+fdtdReference2 complete
 fdtdGPU...
 GPU Device 0: "Turing" with compute capability 7.5
 
  set block size to 32x16
  set grid size to 12x24
  GPU FDTD loop
-	t = 0 launch kernel
-	t = 1 launch kernel
-	t = 2 launch kernel
-	t = 3 launch kernel
-	t = 4 launch kernel
+	t = 0 launch kernel2
+	t = 1 launch kernel2
+	t = 2 launch kernel2
+	t = 3 launch kernel2
+	t = 4 launch kernel2
 
+FDTD3d, Throughput = 174.4892 MPoints/s, Time = 0.30465 s, Size = 53157376 Points, NumDevsUsed = 1, Blocksize = 512
+fdtdGPU complete
+
+CompareData (tolerance 0.000100)...
+Data error at point (0,0,0)	5689682427904.000000 instead of 0.000000

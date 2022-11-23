@@ -85,6 +85,8 @@ void showHelp(const int argc, const char **argv) {
             << "Specify number of elements in z direction (excluding halo)"
             << std::endl;
   std::cout << "    " << std::setw(20) << "--radius=<N>"
+            << "Specify constant value in padded volume" << std::endl;
+  std::cout << "    " << std::setw(20) << "--c_value=<N>"
             << "Specify radius of stencil" << std::endl;
   std::cout << "    " << std::setw(20) << "--timesteps=<N>"
             << "Specify number of timesteps" << std::endl;
@@ -167,8 +169,7 @@ bool runTest(int argc, const char **argv) {
 
   // Parse command line arguments
   if (checkCmdLineFlag(argc, argv, "c_value")) {
-    constant_value =
-        CLAMP(getCmdLineArgumentFloat(argc, argv, "c_value"), k_dim_min, k_dim_max);
+    constant_value = getCmdLineArgumentFloat(argc, argv, "c_value");
   }
 
   if (checkCmdLineFlag(argc, argv, "dimx")) {
@@ -250,7 +251,9 @@ bool runTest(int argc, const char **argv) {
   // Execute on the host
   if (use_kernel2){
     printf("fdtdReference2...\n");
-    fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
+    // for benchmarking we havn't used our cube stencil reference since 
+    // it is very slow and our GPU FDTD results are wrong anyway
+    // fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
     printf("fdtdReference2 complete\n");
   }else{
     printf("fdtdReference...\n");

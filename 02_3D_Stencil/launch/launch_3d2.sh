@@ -11,7 +11,7 @@ OUTPUT=../results/2-$EXE_NAME-$TIME_STAMP
 # SCRIPT="compute-sanitizer --destroy-on-device-error kernel ../FDTD3d/${EXE} --radius="
 SCRIPT="../FDTD3d/${EXE} --radius="
 
-for i in {4..4..1}
+for i in {1..10..1}
 do
 NAME=$OUTPUT-$i
 sbatch \
