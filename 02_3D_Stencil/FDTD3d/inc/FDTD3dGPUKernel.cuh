@@ -194,7 +194,7 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
 
   outputIndex = inputIndex;
   // outputIndex is -RADIUS layers behind current input layer
-  outputIndex += -RADIUS * stride_z;
+  outputIndex -= RADIUS * stride_z;
 
   // Check in bounds
   if ((gtidx >= dimx) || (gtidy >= dimy)) validr = false;
@@ -218,7 +218,7 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
 
 // Step through the xy-planes
 
-  for (int iz = 0; iz < dimz + 2*RADIUS+1; iz++) {
+  for (int iz = 0; iz < dimz + 2*RADIUS; iz++) {
     // Update the data slice in the local tile
     // Halo above
     if(validr){
@@ -278,8 +278,8 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
     }
 
     // if out_buffer is no longer in fill phase
-    if (iz > 2*RADIUS + 1){
-      if (validw) output[outputIndex] = out_buf[2*RADIUS + 1];
+    if (iz >= 2*RADIUS){
+      if (validw) output[outputIndex] = out_buf[2*RADIUS];
     }
     // cycle elements
     for (int i = 2*RADIUS; i > 0; --i){

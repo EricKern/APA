@@ -4,7 +4,7 @@
         {
             "label": "sample",
             "type": "shell",
-            "command": "make dbg=1",
+            "command": "make -C FDTD3d dbg=1",
             "problemMatcher": ["$nvcc"],
             "group": {
                 "kind": "build",

@@ -218,18 +218,20 @@ bool fdtdReference2(float *output, const float *input, const float *coeff,
 
             float value = 0;
             // shift src back for easier indexing
-            src-(radius * stride_z + radius * stride_y + radius);
+            src-=(radius * stride_z + radius * stride_y + radius);
             // iterate over every mask element
             for (int z = 0; z < coeff_dim; z++) {
               for (int y = 0; y < coeff_dim; y++) {
                 for(int x = 0; x < coeff_dim; x++) {
-                  value += *(src + z*stride_z + y*stride_y + x)
-                            * coeff[z*coef_z_stri + y*coef_y_stri + x];
+                  float i_data = *(src + z*stride_z + y*stride_y + x);
+                  float m_data = coeff[z*coef_z_stri + y*coef_y_stri + x];
+
+                  value += i_data * m_data;
                 }
               }
             }
             // shift src to original position
-            src+(radius * stride_z + radius * stride_y + radius);
+            src+=(radius * stride_z + radius * stride_y + radius);
 
             *dst = value;
           } else {

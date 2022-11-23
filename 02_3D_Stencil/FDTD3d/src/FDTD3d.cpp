@@ -216,8 +216,8 @@ bool runTest(int argc, const char **argv) {
     // cubic stencil not symmetric
     int coeff_mem_dim = 2 * k_radius_max + 1;
     int coeff_dim = 2*radius + 1;
-    int coeff_total_len = pow(coeff_dim, 3);
-    coeff = (float *)malloc(coeff_total_len * sizeof(float));
+    int coeff_total_len = pow(coeff_mem_dim, 3);
+    coeff = (float *)calloc(coeff_total_len, sizeof(float));
 
     int c_y_stride = coeff_mem_dim;
     int c_z_stride = pow(coeff_mem_dim, 2);
@@ -250,7 +250,7 @@ bool runTest(int argc, const char **argv) {
   // Execute on the host
   if (use_kernel2){
     printf("fdtdReference2...\n");
-    fdtdReference(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
+    fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
     printf("fdtdReference2 complete\n");
   }else{
     printf("fdtdReference...\n");

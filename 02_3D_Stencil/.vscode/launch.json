@@ -4,7 +4,9 @@
             "name": "CUDA C++: Launch",
             "type": "cuda-gdb",
             "request": "launch",
-            "program": "${workspaceFolder}/FDTD3d/FDTD3d"
+            "program": "${workspaceFolder}/FDTD3d/FDTD3d",
+            "args": "--dimx=2 --dimy=2 --dimz=2 --radius=2 --kernel2",
+            "debuggerPath": "/home/eric/spack/opt/spack/linux-ubuntu22.04-skylake/gcc-11.3.0/cuda-11.8.0-opb6dkd7vchnfpy5qhrffkjev7bvbcwr/bin/cuda-gdb"
         }
     ]
 }

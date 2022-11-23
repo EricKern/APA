@@ -176,19 +176,10 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
     checkCudaErrors(cudaMemcpyToSymbol(stencil, (void *)coeff,
                                        (radius + 1) * sizeof(float)));
   } else {
-    float coeff2[2* k_radius_max + 1][2* k_radius_max + 1][2* k_radius_max + 1];
-
     int sten_dim = 2* k_radius_max + 1;
-    for (size_t z = 0; z < sten_dim; z++) {
-      for (size_t y = 0; y < sten_dim; y++) {
-        for(size_t x = 0; x < sten_dim; x++) {
-          coeff2[z][y][x] = 0.1*x + 0.1*y + 0.1*z;
-        }
-      }
-    }
     int sten_dim_len = sten_dim * sten_dim * sten_dim;
     checkCudaErrors(
-        cudaMemcpyToSymbol(stencil2, (void *)coeff2, sten_dim_len * sizeof(float)));
+        cudaMemcpyToSymbol(stencil2, (void *)coeff, sten_dim_len * sizeof(float)));
   }
 
 #ifdef GPU_PROFILING
@@ -347,7 +338,7 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
     // Determine throughput
     double throughputM = 1.0e-6 * (double)pointsComputed / avgElapsedTime;
     printf(
-        "FDTD3d, Throughput = %.4f MPoints/s, Time = %.5f s, Size = %u Points, "
+        "FDTD3d, Throughput = %.4f MPoints/s, Time = %.5f s, Size = %lu Points, "
         "NumDevsUsed = %u, Blocksize = %u\n",
         throughputM, avgElapsedTime, pointsComputed, 1,
         dimBlock.x * dimBlock.y);
