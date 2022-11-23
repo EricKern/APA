@@ -25,14 +25,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "FDTD3dGPU.h"
-#include "FDTD3d.h"
-
-#include <iostream>
-#include <algorithm>
-#include <helper_functions.h>
 #include <helper_cuda.h>
+#include <helper_functions.h>
 
+#include <algorithm>
+#include <iostream>
+
+#include "FDTD3d.h"
+#include "FDTD3dGPU.h"
 #include "FDTD3dGPUKernel.cuh"
 
 #define GPU_PROFILING
@@ -96,7 +96,8 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
 
   // Check the radius is valid
   if (k_radius_min > radius && radius > k_radius_max) {
-    printf("radius is invalid, must between %d and %d \n", k_radius_min, k_radius_max);
+    printf("radius is invalid, must between %d and %d \n", k_radius_min,
+           k_radius_max);
     exit(EXIT_FAILURE);
   }
 
@@ -130,7 +131,8 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
 
   // Check the device limit on the number of threads
   struct cudaFuncAttributes funcAttrib;
-  checkCudaErrors(cudaFuncGetAttributes(&funcAttrib, FiniteDifferencesKernel<4>));
+  checkCudaErrors(
+      cudaFuncGetAttributes(&funcAttrib, FiniteDifferencesKernel<4>));
 
   userBlockSize = MIN(userBlockSize, funcAttrib.maxThreadsPerBlock);
 
@@ -165,8 +167,29 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
                              cudaMemcpyHostToDevice));
 
   // Copy the coefficients to the device coefficient buffer
-  checkCudaErrors(
-      cudaMemcpyToSymbol(stencil, (void *)coeff, (radius + 1) * sizeof(float)));
+  bool use_kernel2 = false;
+  if (checkCmdLineFlag(argc, (const char **)argv, "kernel2")) {
+    use_kernel2 = true;
+  }
+
+  if (!use_kernel2) {
+    checkCudaErrors(cudaMemcpyToSymbol(stencil, (void *)coeff,
+                                       (radius + 1) * sizeof(float)));
+  } else {
+    float coeff2[2* k_radius_max + 1][2* k_radius_max + 1][2* k_radius_max + 1];
+
+    int sten_dim = 2* k_radius_max + 1;
+    for (size_t z = 0; z < sten_dim; z++) {
+      for (size_t y = 0; y < sten_dim; y++) {
+        for(size_t x = 0; x < sten_dim; x++) {
+          coeff2[z][y][x] = 0.1*x + 0.1*y + 0.1*z;
+        }
+      }
+    }
+    int sten_dim_len = sten_dim * sten_dim * sten_dim;
+    checkCudaErrors(
+        cudaMemcpyToSymbol(stencil2, (void *)coeff2, sten_dim_len * sizeof(float)));
+  }
 
 #ifdef GPU_PROFILING
 
@@ -190,51 +213,98 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
     printf("\tt = %d ", it);
 
     // Launch the kernel
-    printf("launch kernel\n");
-    switch (radius)
-    {
-    case 1:  
-      FiniteDifferencesKernel2<1><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 2:
-      FiniteDifferencesKernel2<2><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 3:
-      FiniteDifferencesKernel2<3><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 4:
-      FiniteDifferencesKernel2<4><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 5:
-      FiniteDifferencesKernel2<5><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 6:
-      FiniteDifferencesKernel2<6><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 7:
-      FiniteDifferencesKernel2<7><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 8:
-      FiniteDifferencesKernel2<8><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 9:
-      FiniteDifferencesKernel2<9><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    case 10:
-      FiniteDifferencesKernel2<10><<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx,
-                                                    dimy, dimz);
-      break;
-    default:
-      break;
+    if (use_kernel2) {
+      printf("launch kernel2\n");
+      switch (radius) {
+        case 1:
+          FiniteDifferencesKernel2<1>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 2:
+          FiniteDifferencesKernel2<2>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 3:
+          FiniteDifferencesKernel2<3>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 4:
+          FiniteDifferencesKernel2<4>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 5:
+          FiniteDifferencesKernel2<5>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 6:
+          FiniteDifferencesKernel2<6>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 7:
+          FiniteDifferencesKernel2<7>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 8:
+          FiniteDifferencesKernel2<8>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 9:
+          FiniteDifferencesKernel2<9>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 10:
+          FiniteDifferencesKernel2<10>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        default:
+          break;
+      }
+    } else {
+      printf("launch kernel1\n");
+      switch (radius) {
+        case 1:
+          FiniteDifferencesKernel<1>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 2:
+          FiniteDifferencesKernel<2>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 3:
+          FiniteDifferencesKernel<3>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 4:
+          FiniteDifferencesKernel<4>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 5:
+          FiniteDifferencesKernel<5>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 6:
+          FiniteDifferencesKernel<6>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 7:
+          FiniteDifferencesKernel<7>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 8:
+          FiniteDifferencesKernel<8>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 9:
+          FiniteDifferencesKernel<9>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        case 10:
+          FiniteDifferencesKernel<10>
+              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+          break;
+        default:
+          break;
+      }
     }
 
     // Toggle the buffers

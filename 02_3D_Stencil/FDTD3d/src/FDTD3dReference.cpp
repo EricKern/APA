@@ -26,6 +26,7 @@
  */
 
 #include "FDTD3dReference.h"
+#include "FDTD3d.h"
 
 #include <cstdlib>
 #include <cmath>
@@ -141,6 +142,94 @@ bool fdtdReference(float *output, const float *input, const float *coeff,
                   coeff[ir] * (*(src + ir * stride_z) +
                                *(src - ir * stride_z));  // in front & behind
             }
+
+            *dst = value;
+          } else {
+            *dst = *src;
+          }
+
+          ++dst;
+          ++src;
+        }
+      }
+    }
+
+    // Rotate buffers
+    float *tmp = bufdst;
+    bufdst = bufdstnext;
+    bufdstnext = tmp;
+    bufsrc = (const float *)tmp;
+  }
+
+  printf("\n");
+
+  if (intermediate) free(intermediate);
+
+  return true;
+}
+
+bool fdtdReference2(float *output, const float *input, const float *coeff,
+                   const int dimx, const int dimy, const int dimz,
+                   const int radius, const int timesteps) {
+  const int outerDimx = dimx + 2 * radius;
+  const int outerDimy = dimy + 2 * radius;
+  const int outerDimz = dimz + 2 * radius;
+  const size_t volumeSize = outerDimx * outerDimy * outerDimz;
+  const int stride_y = outerDimx;
+  const int stride_z = stride_y * outerDimy;
+  float *intermediate = 0;
+  const float *bufsrc = 0;
+  float *bufdst = 0;
+  float *bufdstnext = 0;
+
+  // Allocate temporary buffer
+  printf(" calloc intermediate\n");
+  intermediate = (float *)calloc(volumeSize, sizeof(float));
+
+  // Decide which buffer to use first (result should end up in output)
+  if ((timesteps % 2) == 0) {
+    bufsrc = input;
+    bufdst = intermediate;
+    bufdstnext = output;
+  } else {
+    bufsrc = input;
+    bufdst = output;
+    bufdstnext = intermediate;
+  }
+
+  // Run the FDTD (naive method)
+  printf(" Host FDTD loop\n");
+
+  for (int it = 0; it < timesteps; it++) {
+    printf("\tt = %d\n", it);
+    const float *src = bufsrc;
+    float *dst = bufdst;
+    // coeff
+    int coeff_dim = 2 * radius + 1;
+    int coeff_mem_dim = 2 * k_radius_max + 1;
+    int coef_y_stri = coeff_mem_dim;
+    int coef_z_stri = pow(coeff_mem_dim, 2);
+
+    for (int iz = -radius; iz < dimz + radius; iz++) {
+      for (int iy = -radius; iy < dimy + radius; iy++) {
+        for (int ix = -radius; ix < dimx + radius; ix++) {
+          if (ix >= 0 && ix < dimx && iy >= 0 && iy < dimy && iz >= 0 &&
+              iz < dimz) {
+
+            float value = 0;
+            // shift src back for easier indexing
+            src-(radius * stride_z + radius * stride_y + radius);
+            // iterate over every mask element
+            for (int z = 0; z < coeff_dim; z++) {
+              for (int y = 0; y < coeff_dim; y++) {
+                for(int x = 0; x < coeff_dim; x++) {
+                  value += *(src + z*stride_z + y*stride_y + x)
+                            * coeff[z*coef_z_stri + y*coef_y_stri + x];
+                }
+              }
+            }
+            // shift src to original position
+            src+(radius * stride_z + radius * stride_y + radius);
 
             *dst = value;
           } else {

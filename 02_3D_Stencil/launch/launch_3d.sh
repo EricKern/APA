@@ -10,11 +10,11 @@ OUTPUT=../results/$EXE_NAME-$TIME_STAMP
 
 SCRIPT="../FDTD3d/${EXE} --radius="
 
-for i in {1..1..1}
+for i in {1..10..1}
 do
 NAME=$OUTPUT-$i
 sbatch \
-    -o 2$NAME.txt \
+    -o $NAME.txt \
     -p skylake \
     --gres=gpu:rtx_2080_ti:1 \
     --exclusive \

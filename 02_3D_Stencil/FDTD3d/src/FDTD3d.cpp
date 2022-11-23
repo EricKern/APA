@@ -205,12 +205,38 @@ bool runTest(int argc, const char **argv) {
   // Allocate memory
   host_output = (float *)calloc(volumeSize, sizeof(float));
   input = (float *)malloc(volumeSize * sizeof(float));
-  coeff = (float *)malloc((radius + 1) * sizeof(float));
+
+  bool use_kernel2 = false;
+  if (checkCmdLineFlag(argc, argv, "kernel2")) {
+    use_kernel2 = true;
+  }
 
   // Create coefficients
-  for (int i = 0; i <= radius; i++) {
-    coeff[i] = 0.1f; // symmetric? So only radius element + center element
+  if (use_kernel2){
+    // cubic stencil not symmetric
+    int coeff_mem_dim = 2 * k_radius_max + 1;
+    int coeff_dim = 2*radius + 1;
+    int coeff_total_len = pow(coeff_dim, 3);
+    coeff = (float *)malloc(coeff_total_len * sizeof(float));
+
+    int c_y_stride = coeff_mem_dim;
+    int c_z_stride = pow(coeff_mem_dim, 2);
+
+    for (size_t z = 0; z < coeff_dim; z++) {
+      for (size_t y = 0; y < coeff_dim; y++) {
+        for(size_t x = 0; x < coeff_dim; x++) {
+          coeff[z*c_z_stride + y*c_y_stride + x] = 0.1f;
+        }
+      }
+    }
+
+  }else{
+    coeff = (float *)malloc((radius + 1) * sizeof(float));
+    for (int i = 0; i <= radius; i++) {
+      coeff[i] = 0.1f; // symmetric. So only radius element + center element
+    }
   }
+  
 
   // Generate data
   printf(" generateRandomData\n\n");
@@ -222,9 +248,15 @@ bool runTest(int argc, const char **argv) {
       dimx, dimy, dimz, radius, timesteps);
 
   // Execute on the host
-  printf("fdtdReference...\n");
-  fdtdReference(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
-  printf("fdtdReference complete\n");
+  if (use_kernel2){
+    printf("fdtdReference2...\n");
+    fdtdReference(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
+    printf("fdtdReference2 complete\n");
+  }else{
+    printf("fdtdReference...\n");
+    fdtdReference(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
+    printf("fdtdReference complete\n");
+  }
 
   // Allocate memory
   device_output = (float *)calloc(volumeSize, sizeof(float));

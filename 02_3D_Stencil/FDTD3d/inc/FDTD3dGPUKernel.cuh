@@ -193,11 +193,11 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
   const int ty = ltidy + RADIUS;
 
   outputIndex = inputIndex;
-  // Advance outputIndex output slice hight
+  // outputIndex is -RADIUS layers behind current input layer
   outputIndex += -RADIUS * stride_z;
 
   // Check in bounds
-  if ((gtidx >= dimx + RADIUS) || (gtidy >= dimy + RADIUS)) validr = false;
+  if ((gtidx >= dimx) || (gtidy >= dimy)) validr = false;
 
   if ((gtidx >= dimx) || (gtidy >= dimy)) validw = false;
 
@@ -217,67 +217,73 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
   // current = infront[0];
 
 // Step through the xy-planes
-#pragma unroll 9
 
   for (int iz = 0; iz < dimz + 2*RADIUS+1; iz++) {
     // Update the data slice in the local tile
     // Halo above
-    if (ltidy < RADIUS) {
-      tile[ltidy][tx] = input[inputIndex - RADIUS * stride_y];
-    }
-    // Halo below
-    if (ltidy >= blockDim.y - RADIUS) {
-      tile[ltidy + 2*RADIUS][tx] = input[inputIndex + RADIUS * stride_y];
-    }
-    // Halo left
-    if (ltidx < RADIUS) {
-      tile[ty][ltidx] = input[inputIndex - RADIUS];
-    }
-    // Halo right
-    if (ltidx >= blockDim.x - RADIUS){
-      tile[ty][ltidx + 2*RADIUS] = input[inputIndex + RADIUS];
-    }
+    if(validr){
+      if (ltidy < RADIUS) {
+        tile[ltidy][tx] = input[inputIndex - RADIUS * stride_y];
+      }
+      // Halo below
+      if (ltidy >= blockDim.y - RADIUS) {
+        tile[ltidy + 2*RADIUS][tx] = input[inputIndex + RADIUS * stride_y];
+      }
+      // Halo left
+      if (ltidx < RADIUS) {
+        tile[ty][ltidx] = input[inputIndex - RADIUS];
+      }
+      // Halo right
+      if (ltidx >= blockDim.x - RADIUS){
+        tile[ty][ltidx + 2*RADIUS] = input[inputIndex + RADIUS];
+      }
 
-    // Corners
-    // top left
-    if (ltidy < RADIUS && ltidx < RADIUS) {
-      tile[ltidy][ltidx] = input[inputIndex - RADIUS * stride_y - RADIUS];
-    }
-    // top right
-    if (ltidy < RADIUS && ltidx >= blockDim.x - RADIUS) {
-      tile[ltidy][ltidx + 2*RADIUS] = input[inputIndex - RADIUS * stride_y + RADIUS];
-    }
-    // bottom left
-    if (ltidy >= blockDim.y - RADIUS && ltidx < RADIUS) {
-      tile[ltidy + 2*RADIUS][ltidx] = input[inputIndex + RADIUS * stride_y - RADIUS];
-    }
-    // bottom right
-    if (ltidy >= blockDim.y - RADIUS && ltidx >= blockDim.x - RADIUS) {
-      tile[ltidy + 2*RADIUS][ltidx + 2*RADIUS] = input[inputIndex + RADIUS * stride_y + RADIUS];
-    }
+      // Corners
+      // top left
+      if (ltidy < RADIUS && ltidx < RADIUS) {
+        tile[ltidy][ltidx] = input[inputIndex - RADIUS * stride_y - RADIUS];
+      }
+      // top right
+      if (ltidy < RADIUS && ltidx >= blockDim.x - RADIUS) {
+        tile[ltidy][ltidx + 2*RADIUS] = input[inputIndex - RADIUS * stride_y + RADIUS];
+      }
+      // bottom left
+      if (ltidy >= blockDim.y - RADIUS && ltidx < RADIUS) {
+        tile[ltidy + 2*RADIUS][ltidx] = input[inputIndex + RADIUS * stride_y - RADIUS];
+      }
+      // bottom right
+      if (ltidy >= blockDim.y - RADIUS && ltidx >= blockDim.x - RADIUS) {
+        tile[ltidy + 2*RADIUS][ltidx + 2*RADIUS] = input[inputIndex + RADIUS * stride_y + RADIUS];
+      }
 
-    tile[ty][tx] = input[inputIndex];
+      tile[ty][tx] = input[inputIndex];
+    }
     cg::sync(cta);
 
     // with every layer we want to calculate partial results of max 2*RADIUS + 1
     // other layers
-    // check if input slice is in bottom Halo 
+    // 
+    // iterate over 3d cube stencil mask
     for (int stencil_z = -RADIUS; stencil_z <= RADIUS; stencil_z++){
-      for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
-        for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
-            out_buf[RADIUS+stencil_z] += tile[ty+stencil_y][tx+stencil_y]
-                      * stencil2[RADIUS+stencil_z][RADIUS+stencil_y][RADIUS+stencil_x];
-          
+      // if out_buffer fill phase
+      if (iz-stencil_z >= RADIUS){
+        for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
+          for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
+              out_buf[RADIUS+stencil_z] += tile[ty+stencil_y][tx+stencil_y]
+                        * stencil2[RADIUS+stencil_z][RADIUS+stencil_y][RADIUS+stencil_x];
+            
+          }
         }
       }
     }
 
-    // if out_buffer is not full
-    if (iz < 2*RADIUS + 1){
+    // if out_buffer is no longer in fill phase
+    if (iz > 2*RADIUS + 1){
       if (validw) output[outputIndex] = out_buf[2*RADIUS + 1];
-      for (size_t i = 2*RADIUS; i > 0; --i){
-        out_buf[i] = out_buf[i-1];
-      }
+    }
+    // cycle elements
+    for (int i = 2*RADIUS; i > 0; --i){
+      out_buf[i] = out_buf[i-1];
     }
     out_buf[0] = 0;
     
