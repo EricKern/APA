@@ -8,7 +8,7 @@ GPU Device 0: "Turing" with compute capability 7.5
  cudaGetDeviceProperties
  generateRandomData
 
-FDTD on 376 x 376 x 376 volume with symmetric filter radius 8 for 5 timesteps...
+FDTD on 376 x 376 x 376 volume with symmetric filter radius 5 for 5 timesteps...
 
 fdtdReference2...
 fdtdReference2 complete
@@ -24,8 +24,8 @@ GPU Device 0: "Turing" with compute capability 7.5
 	t = 3 launch kernel2
 	t = 4 launch kernel2
 
-FDTD3d, Throughput = 242.7058 MPoints/s, Time = 0.21902 s, Size = 53157376 Points, NumDevsUsed = 1, Blocksize = 512
+FDTD3d, Throughput = 801.4806 MPoints/s, Time = 0.06632 s, Size = 53157376 Points, NumDevsUsed = 1, Blocksize = 512
 fdtdGPU complete
 
 CompareData (tolerance 0.000100)...
-Data error at point (0,0,0)	1088912162816.000000 instead of 0.000000
+Data error at point (0,0,0)	544006848.000000 instead of 0.000000

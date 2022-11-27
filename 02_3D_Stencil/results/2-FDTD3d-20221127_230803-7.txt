@@ -24,8 +24,8 @@ GPU Device 0: "Turing" with compute capability 7.5
 	t = 3 launch kernel2
 	t = 4 launch kernel2
 
-FDTD3d, Throughput = 1000.3889 MPoints/s, Time = 0.05314 s, Size = 53157376 Points, NumDevsUsed = 1, Blocksize = 512
+FDTD3d, Throughput = 351.2043 MPoints/s, Time = 0.15136 s, Size = 53157376 Points, NumDevsUsed = 1, Blocksize = 512
 fdtdGPU complete
 
 CompareData (tolerance 0.000100)...
-Data error at point (0,0,0)	170082893824.000000 instead of 0.000000
+Data error at point (0,0,0)	51530104832.000000 instead of 0.000000
