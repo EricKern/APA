@@ -243,6 +243,8 @@ bool runTest(int argc, const char **argv) {
   printf(" generateRandomData\n\n");
   generateRandomPaddedData(input, outerDimx, outerDimy, outerDimz, lowerBound,
                      upperBound, radius, constant_value);
+  // generateStructData(input, outerDimx, outerDimy, outerDimz, lowerBound,
+  //                    upperBound, radius, constant_value);
   printf(
       "FDTD on %d x %d x %d volume with symmetric filter radius %d for %d "
       "timesteps...\n\n",
