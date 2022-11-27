@@ -34,6 +34,11 @@ void generateRandomData(float *data, const int dimx, const int dimy,
 void generateRandomPaddedData(float *data, const int dimx, const int dimy,
                         const int dimz, const float lowerBound,
                         const float upperBound, const int radius, const float c_value);
+
+void generateStructData(float *data, const int dimx, const int dimy,
+                        const int dimz, const float lowerBound,
+                        const float upperBound, const int radius, const float c_value);
+
 void generatePatternData(float *data, const int dimx, const int dimy,
                          const int dimz, const float lowerBound,
                          const float upperBound);

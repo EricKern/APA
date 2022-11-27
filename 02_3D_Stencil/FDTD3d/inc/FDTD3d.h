@@ -32,7 +32,7 @@
 // be changed but note that running very large dimensions can
 // take a very long time and you should avoid running on your
 // primary display in this case.
-#define k_dim_min 96
+#define k_dim_min 2
 #define k_dim_max 376
 #define k_dim_qa 248
 

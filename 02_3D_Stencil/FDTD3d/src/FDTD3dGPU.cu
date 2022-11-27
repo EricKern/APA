@@ -199,7 +199,8 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
   // Enqueue start event
   checkCudaErrors(cudaEventRecord(profileStart, 0));
 #endif
-
+  int shMeme_size = (dimBlock.x + 2 * radius) * (dimBlock.y + 2 * radius);
+  shMeme_size *= sizeof(float);
   for (int it = 0; it < timesteps; it++) {
     printf("\tt = %d ", it);
 
@@ -209,43 +210,43 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
       switch (radius) {
         case 1:
           FiniteDifferencesKernel2<1>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 2:
           FiniteDifferencesKernel2<2>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 3:
           FiniteDifferencesKernel2<3>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 4:
           FiniteDifferencesKernel2<4>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 5:
           FiniteDifferencesKernel2<5>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 6:
           FiniteDifferencesKernel2<6>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 7:
           FiniteDifferencesKernel2<7>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 8:
           FiniteDifferencesKernel2<8>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 9:
           FiniteDifferencesKernel2<9>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         case 10:
           FiniteDifferencesKernel2<10>
-              <<<dimGrid, dimBlock>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
+              <<<dimGrid, dimBlock, shMeme_size>>>(bufferDst, bufferSrc, dimx, dimy, dimz);
           break;
         default:
           break;

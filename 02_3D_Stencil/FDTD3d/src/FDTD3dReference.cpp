@@ -75,6 +75,27 @@ void generateRandomPaddedData(float *data, const int dimx, const int dimy,
   }
 }
 
+void generateStructData(float *data, const int dimx, const int dimy,
+                        const int dimz, const float lowerBound,
+                        const float upperBound, const int radius, const float c_value) {
+  int inner = 0;
+  for (int iz = 0; iz < dimz; iz++) {
+    for (int iy = 0; iy < dimy; iy++) {
+      for (int ix = 0; ix < dimx; ix++) {
+        if(iz < radius || iz >= dimz - radius ||
+           iy < radius || iy >= dimy - radius ||
+           ix < radius || ix >= dimx - radius){
+          *data = c_value;
+        }
+        else{
+          *data = inner++;
+        }
+        ++data;
+      }
+    }
+  }
+}
+
 void generatePatternData(float *data, const int dimx, const int dimy,
                          const int dimz, const float lowerBound,
                          const float upperBound) {
@@ -220,9 +241,9 @@ bool fdtdReference2(float *output, const float *input, const float *coeff,
             // shift src back for easier indexing
             src-=(radius * stride_z + radius * stride_y + radius);
             // iterate over every mask element
-            for (int z = 0; z < coeff_dim; z++) {
-              for (int y = 0; y < coeff_dim; y++) {
-                for(int x = 0; x < coeff_dim; x++) {
+            for (int z = 0; z < coeff_dim; ++z) {
+              for (int y = 0; y < coeff_dim; ++y) {
+                for(int x = 0; x < coeff_dim; ++x) {
                   float i_data = *(src + z*stride_z + y*stride_y + x);
                   float m_data = coeff[z*coef_z_stri + y*coef_y_stri + x];
 

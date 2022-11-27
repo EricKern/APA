@@ -168,7 +168,7 @@ bool runTest(int argc, const char **argv) {
   // Parse command line arguments
   if (checkCmdLineFlag(argc, argv, "c_value")) {
     constant_value =
-        CLAMP(getCmdLineArgumentFloat(argc, argv, "c_value"), k_dim_min, k_dim_max);
+        getCmdLineArgumentFloat(argc, argv, "c_value");
   }
 
   if (checkCmdLineFlag(argc, argv, "dimx")) {
@@ -242,6 +242,8 @@ bool runTest(int argc, const char **argv) {
   printf(" generateRandomData\n\n");
   generateRandomPaddedData(input, outerDimx, outerDimy, outerDimz, lowerBound,
                      upperBound, radius, constant_value);
+  // generateStructData(input, outerDimx, outerDimy, outerDimz, lowerBound,
+  //                    upperBound, radius, constant_value);
   printf(
       "FDTD on %d x %d x %d volume with symmetric filter radius %d for %d "
       "timesteps...\n\n",

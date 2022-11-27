@@ -165,6 +165,12 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
                                         const int dimz) {
   bool validr = true;
   bool validw = true;
+  const int outer_dimx = 2*RADIUS + dimx;
+  const int outer_dimy = 2*RADIUS + dimy;
+  const int outer_dimz = 2*RADIUS + dimz;
+  const int tile_dimx = 2*RADIUS + blockDim.x;
+  const int tile_dimy = 2*RADIUS + blockDim.y;
+  const int tile_size = tile_dimx * tile_dimy;
   const int gtidx = blockIdx.x * blockDim.x + threadIdx.x;
   const int gtidy = blockIdx.y * blockDim.y + threadIdx.y;
   const int ltidx = threadIdx.x;
@@ -173,35 +179,39 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
   const int worky = blockDim.y;
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
-  __shared__ float tile[k_blockDimMaxY + 2 * RADIUS][k_blockDimX + 2 * RADIUS];
+  extern __shared__ float tile[];
 
   const int stride_y = dimx + 2 * RADIUS;
   const int stride_z = stride_y * (dimy + 2 * RADIUS);
 
   int inputIndex = 0;
+  int inputHaloIndex = 0;
   int outputIndex = 0;
 
   // Advance inputIndex to start of inner square at lowest slice
   inputIndex += RADIUS * stride_y + RADIUS;
+  inputHaloIndex = blockIdx.y * blockDim.y * stride_y
+                 + blockIdx.x * blockDim.x;
 
   // Advance inputIndex to target element
+  // One output elem per thread idiom
   inputIndex += gtidy * stride_y + gtidx;
+  outputIndex = inputIndex;
+  // outputIndex is -RADIUS layers behind current input layer
+  outputIndex -= RADIUS * stride_z;
 
   float out_buf[2*RADIUS + 1];
 
   const int tx = ltidx + RADIUS;
   const int ty = ltidy + RADIUS;
 
-  outputIndex = inputIndex;
-  // outputIndex is -RADIUS layers behind current input layer
-  outputIndex -= RADIUS * stride_z;
 
   // Check in bounds
-  if ((gtidx >= dimx) || (gtidy >= dimy)) validr = false;
 
   if ((gtidx >= dimx) || (gtidy >= dimy)) validw = false;
 
   // Init output buffer
+  #pragma unroll (2*RADIUS+1)
   for (int i = 0; i < 2*RADIUS+1; i++){
     out_buf[i] = 0;
   }
@@ -218,60 +228,42 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
 
 // Step through the xy-planes
 
-  for (int iz = 0; iz < dimz + 2*RADIUS; iz++) {
+
+  for (int iz = 0; iz < outer_dimz; iz++) {
     // Update the data slice in the local tile
-    // Halo above
-    if(validr){
-      if (ltidy < RADIUS) {
-        tile[ltidy][tx] = input[inputIndex - RADIUS * stride_y];
-      }
-      // Halo below
-      if (ltidy >= blockDim.y - RADIUS) {
-        tile[ltidy + 2*RADIUS][tx] = input[inputIndex + RADIUS * stride_y];
-      }
-      // Halo left
-      if (ltidx < RADIUS) {
-        tile[ty][ltidx] = input[inputIndex - RADIUS];
-      }
-      // Halo right
-      if (ltidx >= blockDim.x - RADIUS){
-        tile[ty][ltidx + 2*RADIUS] = input[inputIndex + RADIUS];
-      }
+    // block stride kernel Ja moin
+    for (int tid_flat = threadIdx.y * blockDim.x + threadIdx.x;
+        tid_flat < tile_size;
+        tid_flat += blockDim.x * blockDim.y){
+      
+      int my_x = tid_flat % tile_dimx;
+      int my_y = tid_flat / tile_dimx;
+      int my_glob_r_x = blockIdx.x * blockDim.x + my_x;
+      int my_glob_r_y = blockIdx.y * blockDim.y + my_y;
 
-      // Corners
-      // top left
-      if (ltidy < RADIUS && ltidx < RADIUS) {
-        tile[ltidy][ltidx] = input[inputIndex - RADIUS * stride_y - RADIUS];
+      if ((my_glob_r_x < outer_dimx) && (my_glob_r_y < outer_dimy)){
+        tile[my_y * tile_dimx + my_x] = input[inputHaloIndex + my_y * stride_y + my_x];
       }
-      // top right
-      if (ltidy < RADIUS && ltidx >= blockDim.x - RADIUS) {
-        tile[ltidy][ltidx + 2*RADIUS] = input[inputIndex - RADIUS * stride_y + RADIUS];
-      }
-      // bottom left
-      if (ltidy >= blockDim.y - RADIUS && ltidx < RADIUS) {
-        tile[ltidy + 2*RADIUS][ltidx] = input[inputIndex + RADIUS * stride_y - RADIUS];
-      }
-      // bottom right
-      if (ltidy >= blockDim.y - RADIUS && ltidx >= blockDim.x - RADIUS) {
-        tile[ltidy + 2*RADIUS][ltidx + 2*RADIUS] = input[inputIndex + RADIUS * stride_y + RADIUS];
-      }
-
-      tile[ty][tx] = input[inputIndex];
     }
     cg::sync(cta);
+    // tile[ty][tx] = input[inputIndex];
 
     // with every layer we want to calculate partial results of max 2*RADIUS + 1
     // other layers
-    // 
-    // iterate over 3d cube stencil mask
-    for (int stencil_z = -RADIUS; stencil_z <= RADIUS; stencil_z++){
-      // if out_buffer fill phase
-      if (iz-stencil_z >= RADIUS){
-        for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
-          for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
-              out_buf[RADIUS+stencil_z] += tile[ty+stencil_y][tx+stencil_y]
+    if(validw){
+      // iterate over 3d cube stencil mask
+      for (int stencil_z = -RADIUS; stencil_z <= RADIUS; stencil_z++){
+        // if out_buffer fill phase
+        if (iz-stencil_z >= RADIUS){
+          for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
+            for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
+              int tile_y = ty+stencil_y;
+              int tile_x = tx+stencil_x;
+
+              out_buf[RADIUS+stencil_z] += tile[tile_y*tile_dimx + tile_x]
                         * stencil2[RADIUS+stencil_z][RADIUS+stencil_y][RADIUS+stencil_x];
-            
+              
+            }
           }
         }
       }
@@ -282,12 +274,14 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
       if (validw) output[outputIndex] = out_buf[2*RADIUS];
     }
     // cycle elements
+    # pragma unroll 2*RADIUS
     for (int i = 2*RADIUS; i > 0; --i){
       out_buf[i] = out_buf[i-1];
     }
     out_buf[0] = 0;
     
     inputIndex += stride_z;
+    inputHaloIndex += stride_z;
     outputIndex += stride_z;
     
     cg::sync(cta);
