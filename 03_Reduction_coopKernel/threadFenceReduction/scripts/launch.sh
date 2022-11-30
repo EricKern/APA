@@ -8,10 +8,10 @@ TIME_STAMP=$(date +%Y%m%d_%H%M%S)
 # OUTPUT1=../results/$EXE_NAME-$TIME_STAMP
 # OUTPUT2=../results/M-$EXE_NAME-$TIME_STAMP
 OUTPUT1=../results/
-OUTPUT2=../results/M-
+OUTPUT2=../results/C-
 
 
-for elem_pow in {6..26..2}
+for elem_pow in {30..30..2}
 do
     for t in {7..10..1}
     do
@@ -19,13 +19,12 @@ do
         thread=$((2**$t))
 
         SCRIPT1="../${EXE} --n=$elem --threads=$thread"
-        SCRIPT2="../${EXE} --n=$elem --threads=$thread --multipass"
+        SCRIPT2="../${EXE} --n=$elem --threads=$thread --coop"
         NAME1=${OUTPUT1}${elem}-${thread}
         NAME2=${OUTPUT2}${elem}-${thread}
         sbatch \
             -o $NAME1.txt \
             -p skylake \
-            --mem=20GB \
             --gres=gpu:rtx_2080_ti:1 \
             --exclusive \
             --wrap="${SCRIPT1}"
@@ -33,7 +32,6 @@ do
         sbatch \
             -o $NAME2.txt \
             -p skylake \
-            --mem=20GB \
             --gres=gpu:rtx_2080_ti:1 \
             --exclusive \
             --wrap="${SCRIPT2}"

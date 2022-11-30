@@ -1,0 +1,14 @@
+threadFenceReduction Starting...
+
+GPU Device 0: "Turing" with compute capability 7.5
+
+GPU Device supports SM 7.5 compute capability
+
+1073741824 elements
+128 threads (max)
+64 blocks
+Average time: 7.856589 ms
+Bandwidth:    546.670748 GB/s
+
+GPU result = 63.749427795410
+CPU result = 63.749427795410

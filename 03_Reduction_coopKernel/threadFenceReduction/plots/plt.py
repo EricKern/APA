@@ -85,7 +85,7 @@ class Measure_Factory:
         ReadStates = enum.Enum('ReadStates', ['readingMeta', 'readingData'])
 
         file_name = self.file_path.split("/")[-1]
-        if file_name.startswith("M-"):
+        if file_name.startswith("C-"):
             file_name = file_name[2:]
         name = file_name.split(".")[0]
         self.experiment_meta.elem.value = int(name.split("-")[0])
@@ -180,8 +180,8 @@ if __name__ == "__main__":
 
     raw_files = get_measurement_files()
 
-    files_mpass = [f for f in raw_files if 'M-' in f] # files must contain "M-"
-    files = [f for f in raw_files if not 'M-' in f] # files must contain "M-"
+    files_mpass = [f for f in raw_files if 'C-' in f] # files must contain "C-"
+    files = [f for f in raw_files if not 'C-' in f]
 
     factories_mpass: List[Measure_Factory] = [None]*len(files)
     factories: List[Measure_Factory] = [None]*len(files)
@@ -224,8 +224,8 @@ if __name__ == "__main__":
         else:
             raise RuntimeError("Not sorted!")
 
-        pd_raw_row["BW"] = elem.Bandwidth.value
-        pd_raw_row["BW-Multipass"] = mpass_elem.Bandwidth.value
+        pd_raw_row["BW-Singelpass"] = elem.Bandwidth.value
+        pd_raw_row["BW-CoopLaunch"] = mpass_elem.Bandwidth.value
 
         pd_raw_rows.append(pd_raw_row)
 
@@ -235,13 +235,13 @@ if __name__ == "__main__":
     df_new = df.pivot(index="elements", columns="threads")
     # print(df_new.head())
 
-    # df_new["BW-Multipass"].plot()
+    # df_new["BW-CoopLaunch"].plot()
     df_new.plot()
     plt.ylabel("Bandwidth in GB/s")
     plt.xlabel("Elements")
     plt.xscale('log', base=2)
-    plt.yscale('log')
+    # plt.yscale('log')
 
     # plt.title("")
     plt.legend()
-    plt.savefig("multi_pass.pdf", bbox_inches='tight')
+    plt.savefig("coop_launch.pdf", bbox_inches='tight')
