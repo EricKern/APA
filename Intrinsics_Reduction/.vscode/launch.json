@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "CUDA C++: Launch",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/intr_reduce.out",
+            "args": "",
+            "debuggerPath": "/home/eric/spack/opt/spack/linux-ubuntu22.04-skylake/gcc-11.3.0/cuda-11.8.0-opb6dkd7vchnfpy5qhrffkjev7bvbcwr/bin/cuda-gdb"
+        }
+    ]
+}
