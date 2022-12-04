@@ -1,5 +1,6 @@
 /**/build
 *.o
+*.out
 *.lib
 *.pdf
 *.png
