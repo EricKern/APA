@@ -70,6 +70,17 @@ int main(int argc, char **argv) {
          deviceProp.name, deviceProp.multiProcessorCount, deviceProp.major,
          deviceProp.minor);
 
+  // new CL parameter
+  int Wc, binNum;
+  if (checkCmdLineFlag(argc, (const char **)argv, "Wc")) {
+    Wc = getCmdLineArgumentInt(argc, (const char **)argv, "Wc");
+    printf("\nMax colliding warps: %d\n", Wc);
+  }
+  if (checkCmdLineFlag(argc, (const char **)argv, "binNum")) {
+    binNum = getCmdLineArgumentInt(argc, (const char **)argv, "binNum");
+    printf("Nr bins: %d\n\n", binNum);
+  }
+
   sdkCreateTimer(&hTimer);
 
   // Optional Command-line multiplier to increase size of array to histogram
