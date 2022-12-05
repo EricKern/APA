@@ -74,6 +74,7 @@ __global__ void histogram256Kernel(uint *d_PartialHistograms, uint *d_Data,
 
   cg::sync(cta);
 
+  // grid stride kernel
   for (uint pos = UMAD(blockIdx.x, blockDim.x, threadIdx.x); pos < dataCount;
        pos += UMUL(blockDim.x, gridDim.x)) {
     uint data = d_Data[pos];

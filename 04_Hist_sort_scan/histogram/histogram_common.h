@@ -27,7 +27,6 @@
 
 #ifndef HISTOGRAM_COMMON_H
 #define HISTOGRAM_COMMON_H
-
 ////////////////////////////////////////////////////////////////////////////////
 // Common definitions
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,27 +74,16 @@ extern "C" void histogram256CPU(uint *h_Histogram, void *h_Data,
 ////////////////////////////////////////////////////////////////////////////////
 extern "C" void initHistogram64(void);
 extern "C" void initHistogram256(void);
+extern "C" void initHistogramBinNum(uint binNum);
 extern "C" void closeHistogram64(void);
 extern "C" void closeHistogram256(void);
+extern "C" void closeHistogramBinNum(void);
 
 extern "C" void histogram64(uint *d_Histogram, void *d_Data, uint byteCount);
 
 extern "C" void histogram256(uint *d_Histogram, void *d_Data, uint byteCount);
 
-bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
+extern "C" void histogramBinNum(uint *d_Histogram, void *d_Data, uint byteCount, uint binNum, uint Wc);
 
-template<uint binNum>
-void histogramBinNumCPU(uint *h_Histogram, uint *h_Data,
-                                   uint byteCount) {
-  for (uint i = 0; i < binNum; ++i) h_Histogram[i] = 0;
-
-  assert(sizeof(uint) == 4 && (byteCount % 4) == 0 && isPow2(binNum) == true);
-
-  uint mask = binNum-1;
-  for (uint i = 0; i < (byteCount / 4); i++) {
-    uint data = h_Data[i] & mask;
-    h_Histogram[data]++;
-  }
-}
 
 #endif

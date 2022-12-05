@@ -32,7 +32,7 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
-CUDA_PATH ?= /home/eric/spack/opt/spack/linux-ubuntu22.04-skylake/gcc-11.3.0/cuda-11.8.0-opb6dkd7vchnfpy5qhrffkjev7bvbcwr
+CUDA_PATH ?= /opt/asc/pub/spack/opt/spack/linux-centos7-x86_64_v2/gcc-11.3.0/cuda-11.8.0-a2ulnpbrmsu6ncgqspd5zza5ib4lzdpn
 
 ##############################
 # start deprecated interface #
@@ -320,6 +320,9 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
+histoBinNum.o:histoBinNum.cu
+	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+
 histogram256.o:histogram256.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
@@ -332,7 +335,7 @@ histogram_gold.o:histogram_gold.cpp
 main.o:main.cpp
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-histogram.out: histogram256.o histogram64.o histogram_gold.o main.o
+histogram.out:histoBinNum.o histogram256.o histogram64.o histogram_gold.o main.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
 run: build
@@ -341,6 +344,6 @@ run: build
 testrun: build
 
 clean:
-	rm -f histogram.out histogram256.o histogram64.o histogram_gold.o main.o
+	rm -f histogram.out histoBinNum.o histogram256.o histogram64.o histogram_gold.o main.o
 
 clobber: clean
