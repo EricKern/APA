@@ -63,24 +63,4 @@ extern "C" void histogram256CPU(uint *h_Histogram, void *h_Data,
 }
 
 
-template<uint in_max, uint in_min>
-uint map_to_range(uint binNum, uint in){
-  // naive linear interpolation
-  // std::lerp() maybe too good for t = 1
-  double fraction = static_cast<double>(in - in_min) / (in_max - in_min + 1);
-  return fraction * binNum;  // cutoff is actually what we want
-}
-
-extern "C" void histogramBinNumCPU(uint *h_Histogram, uint *h_Data,
-                                   uint byteCount, uint binNum) {
-  for (uint i = 0; i < binNum; ++i) h_Histogram[i] = 0;
-
-  // assert(sizeof(uint) == 4 && (byteCount % 4) == 0);
-
-  for (uint i = 0; i < (byteCount / 4); i++) {
-    uint bin =
-        map_to_range<std::numeric_limits<uint>::lowest(),
-                     std::numeric_limits<uint>::max()>(binNum, h_Data[i]);
-    h_Histogram[bin]++;
-  }
-}
+// histogramBinNumCPU in header as template

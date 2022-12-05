@@ -82,4 +82,20 @@ extern "C" void histogram64(uint *d_Histogram, void *d_Data, uint byteCount);
 
 extern "C" void histogram256(uint *d_Histogram, void *d_Data, uint byteCount);
 
+bool isPow2(unsigned int x) { return ((x & (x - 1)) == 0); }
+
+template<uint binNum>
+void histogramBinNumCPU(uint *h_Histogram, uint *h_Data,
+                                   uint byteCount) {
+  for (uint i = 0; i < binNum; ++i) h_Histogram[i] = 0;
+
+  assert(sizeof(uint) == 4 && (byteCount % 4) == 0 && isPow2(binNum) == true);
+
+  uint mask = binNum-1;
+  for (uint i = 0; i < (byteCount / 4); i++) {
+    uint data = h_Data[i] & mask;
+    h_Histogram[data]++;
+  }
+}
+
 #endif
