@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
   int smem_bytes;
   cudaDeviceGetAttribute(&smem_bytes, cudaDevAttrMaxSharedMemoryPerBlock, dev);
-  printf("Max Shared Mem per Block: %d MB\n", smem_bytes/1024);
+  printf("Max Shared Mem per Block: %d KB\n", smem_bytes/1024);
 
   printf("CUDA device [%s] has %d Multi-Processors, Compute %d.%d\n",
          deviceProp.name, deviceProp.multiProcessorCount, deviceProp.major,
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
         sdkStartTimer(&hTimer);
       }
 
-      histogramBinNum(d_HistoBinNum, d_Data, byteCount, binNum, Wc);
+      histogramBinNum(d_HistoBinNum, d_Data, byteCount, binNum, Wc, dev);
     }
     cudaDeviceSynchronize();
     sdkStopTimer(&hTimer);
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
       }
 
     printf(PassFailFlag ? " ...%d-bin histograms match\n\n"
-                        : " ***%d-bin histograms do not match!!!***\n\n", binNum, binNum);
+                        : " ***%d-bin histograms do not match!!!***\n\n", binNum);
 
     printf("Shutting down %d-bin histogram...\n\n\n", binNum);
     closeHistogramBinNum();
