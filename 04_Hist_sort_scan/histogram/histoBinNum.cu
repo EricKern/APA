@@ -94,7 +94,7 @@ __global__ void mergeHistogramBinNumKernel(uint *d_Histogram,
 ////////////////////////////////////////////////////////////////////////////////
 // Host interface to GPU histogram
 ////////////////////////////////////////////////////////////////////////////////
-// histogram256kernel() intermediate results buffer
+// histogramBinNumKernel() intermediate results buffer
 static const uint PARTIAL_HISTOGRAM256_COUNT = 256;
 static const uint BLOCK_SIZE = 256;
 
@@ -112,25 +112,13 @@ extern "C" void closeHistogramBinNum(void) {
   checkCudaErrors(cudaFree(d_PartialHistograms));
 }
 
-extern "C" void histogramBinNum(uint *d_Histogram, void *d_Data, uint byteCount, uint binNum, uint Wc, int dev) {
+extern "C" void histogramBinNum(uint *d_Histogram, void *d_Data, uint byteCount,
+                                uint binNum, uint Wc, LaunchParam *par) {
   assert(byteCount % sizeof(uint) == 0);
 
-  // calculate blocksize based on shared mem
-  int smem_bytes;
-  cudaDeviceGetAttribute(&smem_bytes, cudaDevAttrMaxSharedMemoryPerBlock, dev);
-  uint max_tot_bins = smem_bytes/sizeof(uint);
-  uint loc_histograms = max_tot_bins/binNum;
-  uint warps_per_block = loc_histograms * Wc;
-  uint blocksize = warps_per_block * 32;
-  uint used_blocksize = std::min(blocksize, 1024u);
 
-  // uint warps_per_block = BLOCK_SIZE/32;
-  // uint s_mem_bytes = (warps_per_block/Wc) * binNum * sizeof(uint);
-  // printf("Shared mem usage %d\n", smem_bytes);
-  // printf("PARTIAL_HISTOGRAM256_COUNT %d\n", PARTIAL_HISTOGRAM256_COUNT);
-  // printf("Blocksize %d\n", used_blocksize);
   getLastCudaError("BEFORE histogramBinNumKernel() execution failed\n");
-  histogramBinNumKernel<<<PARTIAL_HISTOGRAM256_COUNT, used_blocksize, smem_bytes>>>(
+  histogramBinNumKernel<<<PARTIAL_HISTOGRAM256_COUNT, par->block, par->shMem>>>(
       d_PartialHistograms, (uint *)d_Data, byteCount / sizeof(uint), binNum, Wc);
   getLastCudaError("histogramBinNumKernel() execution failed\n");
 

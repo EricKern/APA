@@ -62,5 +62,17 @@ extern "C" void histogram256CPU(uint *h_Histogram, void *h_Data,
   }
 }
 
+bool isPowerof2(unsigned int x) { return ((x & (x - 1)) == 0); }
 
-// histogramBinNumCPU in header as template
+void histogramBinNumCPU(uint *h_Histogram, uint *h_Data,
+                                   uint byteCount, uint binNum) {
+  for (uint i = 0; i < binNum; ++i) h_Histogram[i] = 0;
+                                                      // from samples helpers
+  assert(sizeof(uint) == 4 && (byteCount % 4) == 0 && isPowerof2(binNum) == true);
+
+  uint mask = binNum-1;
+  for (uint i = 0; i < (byteCount / 4); i++) {
+    uint data = h_Data[i] & mask;
+    h_Histogram[data]++;
+  }
+}

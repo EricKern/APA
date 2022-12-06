@@ -40,19 +40,6 @@
 // project include
 #include "histogram_common.h"
 
-bool isPowerof2(unsigned int x) { return ((x & (x - 1)) == 0); }
-void histogramBinNumCPU(uint *h_Histogram, uint *h_Data,
-                                   uint byteCount, uint binNum) {
-  for (uint i = 0; i < binNum; ++i) h_Histogram[i] = 0;
-                                                      // from samples helpers
-  assert(sizeof(uint) == 4 && (byteCount % 4) == 0 && isPowerof2(binNum) == true);
-
-  uint mask = binNum-1;
-  for (uint i = 0; i < (byteCount / 4); i++) {
-    uint data = h_Data[i] & mask;
-    h_Histogram[data]++;
-  }
-}
 
 const int numRuns = 16;
 const static char *sSDKsample = "[histogram]\0";
@@ -81,13 +68,14 @@ int main(int argc, char **argv) {
 
   checkCudaErrors(cudaGetDeviceProperties(&deviceProp, dev));
 
-  int smem_bytes;
-  cudaDeviceGetAttribute(&smem_bytes, cudaDevAttrMaxSharedMemoryPerBlock, dev);
-  printf("Max Shared Mem per Block: %d KB\n", smem_bytes/1024);
 
   printf("CUDA device [%s] has %d Multi-Processors, Compute %d.%d\n",
          deviceProp.name, deviceProp.multiProcessorCount, deviceProp.major,
          deviceProp.minor);
+
+  int shared_men;
+  cudaDeviceGetAttribute(&shared_men, cudaDevAttrMaxSharedMemoryPerBlock, dev);
+  printf("Max Shared Mem per Block: %d KB\n", shared_men/1024);
 
   // new CL parameter
   bool useMyHist = false;
@@ -149,6 +137,25 @@ int main(int argc, char **argv) {
     printf("Starting up binNum histogram...\n\n");
     initHistogramBinNum(binNum);
 
+    // calculate launch parameter gridsize blocksize, shared memory
+    LaunchParam param = LaunchParam();
+    int smem_bytes;
+    cudaDeviceGetAttribute(&smem_bytes, cudaDevAttrMaxSharedMemoryPerBlock, dev);
+    uint max_block_histograms = (smem_bytes / sizeof(uint)) / binNum;
+    uint warps_per_block = max_block_histograms * Wc;
+    uint blocksize = warps_per_block * 32;
+    uint used_blocksize = std::min(blocksize, 1024u);
+    if(used_blocksize != blocksize) { //clamping
+      // correct smem usage for possibly better SM occupation
+      uint warps = 1024u / 32u;
+      uint block_histograms = warps / Wc;
+      smem_bytes = block_histograms * binNum * sizeof(uint);
+    }
+    
+    param.block.x = used_blocksize;
+    param.shMem = smem_bytes;
+    
+
     printf("Running %d-bin GPU histogram for %u bytes (%u runs)...\n\n",
             binNum, byteCount, numRuns);
 
@@ -160,7 +167,7 @@ int main(int argc, char **argv) {
         sdkStartTimer(&hTimer);
       }
 
-      histogramBinNum(d_HistoBinNum, d_Data, byteCount, binNum, Wc, dev);
+      histogramBinNum(d_HistoBinNum, d_Data, byteCount, binNum, Wc, &param);
     }
     cudaDeviceSynchronize();
     sdkStopTimer(&hTimer);
@@ -170,9 +177,9 @@ int main(int argc, char **argv) {
           ((double)byteCount * 1.0e-6) / dAvgSecs);
     printf(
         "histogramBinNum, Throughput = %.4f MB/s, Time = %.5f s, Size = %u Bytes, "
-        "NumDevsUsed = %u, Workgroup = %u\n",
+        "NumDevsUsed = %u, Blocksize = %u\n",
         (1.0e-6 * (double)byteCount / dAvgSecs), dAvgSecs, byteCount, 1,
-        HISTOGRAM64_THREADBLOCK_SIZE);
+        param.block.x);
 
     printf("\nValidating GPU results...\n");
     printf(" ...reading back GPU results\n");

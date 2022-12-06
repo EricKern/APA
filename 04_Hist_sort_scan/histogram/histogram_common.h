@@ -27,6 +27,8 @@
 
 #ifndef HISTOGRAM_COMMON_H
 #define HISTOGRAM_COMMON_H
+#include <vector_types.h>
+#include <cstddef>
 ////////////////////////////////////////////////////////////////////////////////
 // Common definitions
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +63,16 @@ typedef unsigned char uchar;
 #define UMUL(a, b) ((a) * (b))
 #define UMAD(a, b, c) (UMUL((a), (b)) + (c))
 
+
+
+struct LaunchParam
+{
+    // dim3 grid; // is static for our histogram
+    dim3 block;
+    size_t shMem;
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Reference CPU histogram
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +80,9 @@ extern "C" void histogram64CPU(uint *h_Histogram, void *h_Data, uint byteCount);
 
 extern "C" void histogram256CPU(uint *h_Histogram, void *h_Data,
                                 uint byteCount);
+
+extern "C" void histogramBinNumCPU(uint *h_Histogram, uint *h_Data,
+                                   uint byteCount, uint binNum);
 
 ////////////////////////////////////////////////////////////////////////////////
 // GPU histogram
@@ -83,7 +98,9 @@ extern "C" void histogram64(uint *d_Histogram, void *d_Data, uint byteCount);
 
 extern "C" void histogram256(uint *d_Histogram, void *d_Data, uint byteCount);
 
-extern "C" void histogramBinNum(uint *d_Histogram, void *d_Data, uint byteCount, uint binNum, uint Wc, int dev);
+extern "C" void histogramBinNum(uint *d_Histogram, void *d_Data, uint byteCount,
+                                uint binNum, uint Wc, LaunchParam *par);
+
 
 
 #endif
