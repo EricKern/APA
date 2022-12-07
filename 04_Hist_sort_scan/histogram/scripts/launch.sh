@@ -8,20 +8,23 @@ TIME_STAMP=$(date +%Y%m%d_%H%M%S)
 # OUTPUT1=../results/$EXE_NAME-$TIME_STAMP
 # OUTPUT2=../results/M-$EXE_NAME-$TIME_STAMP
 OUTPUT1=../results/
-OUTPUT2=../results/C-
 
 
-for elem_pow in {30..30..2}
+for Wc_pow in {0..4..1}
 do
-    for t in {10..10..1}
+    for binNum_pow in {8..13..1}
     do
-        elem=$((2**$elem_pow))
-        thread=$((2**$t))
+        binNum=$((2**$binNum_pow))
+        Wc=$((2**$Wc_pow))
 
-        SCRIPT1="compute-sanitizer ../${EXE} --binNum=8192 --Wc=4"
-        NAME1=${OUTPUT1}${elem}-${thread}
+        # build wrap script for sbatch
+        SCRIPT1="../${EXE} --binNum=$binNum --Wc=$Wc"
+        # build output file name
+        padded_Wc=`printf %02d $Wc`
+        padded_binNum=`printf %04d $binNum`
+        OUT_NAME1=${OUTPUT1}Wc${padded_Wc}-binNum$padded_binNum
         sbatch \
-            -o $NAME1.txt \
+            -o $OUT_NAME1.txt \
             -p skylake \
             --gres=gpu:rtx_2080_ti:1 \
             --exclusive \
