@@ -32,7 +32,7 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
-CUDA_PATH ?= /opt/asc/pub/spack/opt/spack/linux-centos7-x86_64_v2/gcc-11.3.0/cuda-11.8.0-a2ulnpbrmsu6ncgqspd5zza5ib4lzdpn
+CUDA_PATH ?= /home/eric/spack/opt/spack/linux-ubuntu22.04-skylake/gcc-11.3.0/cuda-11.8.0-opb6dkd7vchnfpy5qhrffkjev7bvbcwr
 
 ##############################
 # start deprecated interface #

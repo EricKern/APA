@@ -4,14 +4,13 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/../../../Common"
+                "${workspaceFolder}/../Common",
+                "/home/eric/spack/opt/spack/linux-ubuntu22.04-skylake/gcc-11.3.0/cuda-11.8.0-opb6dkd7vchnfpy5qhrffkjev7bvbcwr/include"
             ],
             "defines": [],
-            "compilerPath": "/usr/local/cuda/bin/nvcc",
+            "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++14",
-            "intelliSenseMode": "linux-gcc-x64",
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4
