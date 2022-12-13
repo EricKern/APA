@@ -236,7 +236,7 @@ bool runTest(int argc, const char **argv) {
     for (size_t z = 0; z < coeff_dim; z++) {
       for (size_t y = 0; y < coeff_dim; y++) {
         for(size_t x = 0; x < coeff_dim; x++) {
-          coeff[z*c_z_stride + y*c_y_stride + x] = 0.1f;
+          coeff[z*c_z_stride + y*c_y_stride + x] = 0.01f * (x+y+z);
         }
       }
     }
@@ -244,20 +244,25 @@ bool runTest(int argc, const char **argv) {
     // we need code above be cause we compare against
     // the static mask stencil version
     if (!static_mask){
-    size_t innerVolumeSize = dimx * dimy * dimz;
-    int num_coeff = 2*radius + 1;
-    num_coeff = pow(num_coeff, 3);
-    // allocate mem for mask buffers (one buffer per coeff element)
-    buffers = (float**)malloc(num_coeff * sizeof(float*));
+      size_t innerVolumeSize = dimx * dimy * dimz;
+      int diameter = 2*radius + 1;
+      int num_coeff = pow(diameter, 3);
+      // allocate mem for mask buffers (one buffer per coeff element)
+      buffers = (float**)malloc(num_coeff * sizeof(float*));
 
-    for (int i = 0; i < num_coeff; ++i) {
-      // each element can have it's very own coeff mask
-      buffers[i] = (float *)malloc(innerVolumeSize * sizeof(float));
-      // immediately initialize buffer to same value as in other versions
-      for (size_t j = 0; j < innerVolumeSize; ++j) {
-        buffers[i][j] = 0.1f;
+      for (size_t z = 0; z < diameter; z++) {
+        for (size_t y = 0; y < diameter; y++) {
+          for(size_t x = 0; x < diameter; x++) {
+            int flat = z * diameter*diameter + y * diameter + x;
+            // each element can have it's very own coeff mask
+            buffers[flat] = (float *)malloc(innerVolumeSize * sizeof(float));
+            // immediately initialize buffer to same value as in other versions
+            for (size_t j = 0; j < innerVolumeSize; ++j) {
+              buffers[flat][j] = 0.01f * (x+y+z);
+            }
+          }
+        }
       }
-    }
     }
   } else{
     coeff = (float *)malloc((radius + 1) * sizeof(float));
@@ -314,7 +319,7 @@ bool runTest(int argc, const char **argv) {
   // Compare the results
   float tolerance = 0.0001f;
   printf("\nCompareData (tolerance %f)...\n", tolerance);
-  return compareData(device_output, host_output, dimx, dimy, dimz, radius,
+  bool correct = compareData(device_output, host_output, dimx, dimy, dimz, radius,
                      tolerance);
 
   // free memory
@@ -338,5 +343,5 @@ bool runTest(int argc, const char **argv) {
   } else{
     free(coeff);
   }
-
+  return correct;
 }

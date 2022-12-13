@@ -301,6 +301,7 @@ __global__ void FiniteDifferencesKernel3(float *output, const float *input,
   const int ltidy = threadIdx.y;
   const int workx = blockDim.x;
   const int worky = blockDim.y;
+  static constexpr int DIAM = 2*RADIUS + 1;
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float tile[];
@@ -379,7 +380,8 @@ __global__ void FiniteDifferencesKernel3(float *output, const float *input,
             int maskX = RADIUS+stencil_x;
             int maskY = RADIUS+stencil_y;
             int maskZ = RADIUS+stencil_z;
-            int stenc_Coord = maskZ * RADIUS * RADIUS + maskY * RADIUS + maskX;
+
+            int stenc_Coord = maskZ * DIAM * DIAM + maskY * DIAM + maskX;
             float *stencilBuffer = coeff_buffers[stenc_Coord];
 
 
