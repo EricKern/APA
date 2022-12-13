@@ -295,12 +295,12 @@ bool runTest(int argc, const char **argv) {
     printf("fdtdReference2...\n");
     // for benchmarking we havn't used our cube stencil reference since 
     // it is very slow
-    fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
-    printf("fdtdReference2 complete\n");
+    // fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
+    printf("fdtdReference2 skiped\n");
   } else if(use_kernel2 && !static_mask){
     // use GPU version with static mask as reference
     fdtdGPU(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps,
-            argc, argv);
+            argc, argv, true);
   } else {
     printf("fdtdReference...\n");
     fdtdReference(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);

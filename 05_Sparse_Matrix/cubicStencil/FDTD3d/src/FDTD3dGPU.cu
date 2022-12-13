@@ -64,7 +64,7 @@ bool getTargetDeviceGlobalMemSize(memsize_t *result, const int argc,
 
 bool fdtdGPU(float *output, const float *input, const float *coeff,
              const int dimx, const int dimy, const int dimz, const int radius,
-             const int timesteps, const int argc, const char **argv) {
+             const int timesteps, const int argc, const char **argv, bool silent) {
   const int outerDimx = dimx + 2 * radius;
   const int outerDimy = dimy + 2 * radius;
   const int outerDimz = dimz + 2 * radius;
@@ -146,8 +146,10 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
                    : (size_t)k_blockDimMaxY;
   dimGrid.x = (unsigned int)ceil((float)dimx / dimBlock.x);
   dimGrid.y = (unsigned int)ceil((float)dimy / dimBlock.y);
-  printf(" set block size to %dx%d\n", dimBlock.x, dimBlock.y);
-  printf(" set grid size to %dx%d\n", dimGrid.x, dimGrid.y);
+  if(!silent){
+    printf(" set block size to %dx%d\n", dimBlock.x, dimBlock.y);
+    printf(" set grid size to %dx%d\n", dimGrid.x, dimGrid.y);
+  }
 
   // Check the block size is valid
   if (dimBlock.x < radius || dimBlock.y < radius) {
@@ -193,7 +195,8 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
   // Execute the FDTD
   float *bufferSrc = bufferIn + padding;
   float *bufferDst = bufferOut + padding;
-  printf(" GPU FDTD loop\n");
+  if(!silent)
+    printf(" GPU FDTD loop\n");
 
 #ifdef GPU_PROFILING
   // Enqueue start event
@@ -202,11 +205,13 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
   int shMeme_size = (dimBlock.x + 2 * radius) * (dimBlock.y + 2 * radius);
   shMeme_size *= sizeof(float);
   for (int it = 0; it < timesteps; it++) {
-    printf("\tt = %d ", it);
+    if(!silent)
+      printf("\tt = %d ", it);
 
     // Launch the kernel
     if (use_kernel2) {
-      printf("launch kernel2\n");
+      if(!silent)
+        printf("launch kernel2\n");
       switch (radius) {
         case 1:
           FiniteDifferencesKernel2<1><<<dimGrid, dimBlock, shMeme_size>>>(
@@ -252,7 +257,8 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
           break;
       }
     } else {
-      printf("launch kernel1\n");
+      if(!silent)
+        printf("launch kernel1\n");
       switch (radius) {
         case 1:
           FiniteDifferencesKernel<1>
@@ -338,12 +344,13 @@ bool fdtdGPU(float *output, const float *input, const float *coeff,
     size_t pointsComputed = dimx * dimy * dimz;
     // Determine throughput
     double throughputM = 1.0e-6 * (double)pointsComputed / avgElapsedTime;
-    printf(
-        "FDTD3d, Throughput = %.4f MPoints/s, Time = %.5f s, Size = %lu "
-        "Points, "
-        "NumDevsUsed = %u, Blocksize = %u\n",
-        throughputM, avgElapsedTime, pointsComputed, 1,
-        dimBlock.x * dimBlock.y);
+    if(!silent)
+      printf(
+          "FDTD3d, Throughput = %.4f MPoints/s, Time = %.5f s, Size = %lu "
+          "Points, "
+          "NumDevsUsed = %u, Blocksize = %u\n",
+          throughputM, avgElapsedTime, pointsComputed, 1,
+          dimBlock.x * dimBlock.y);
   }
 
 #endif

@@ -46,8 +46,6 @@ __global__ void FiniteDifferencesKernel(float *output, const float *input,
   const int gtidy = blockIdx.y * blockDim.y + threadIdx.y;
   const int ltidx = threadIdx.x;
   const int ltidy = threadIdx.y;
-  const int workx = blockDim.x;
-  const int worky = blockDim.y;
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
   __shared__ float tile[k_blockDimMaxY + 2 * RADIUS][k_blockDimX + 2 * RADIUS];
@@ -163,7 +161,6 @@ template <int RADIUS>
 __global__ void FiniteDifferencesKernel2(float *output, const float *input,
                                         const int dimx, const int dimy,
                                         const int dimz) {
-  bool validr = true;
   bool validw = true;
   const int outer_dimx = 2*RADIUS + dimx;
   const int outer_dimy = 2*RADIUS + dimy;
@@ -175,8 +172,7 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
   const int gtidy = blockIdx.y * blockDim.y + threadIdx.y;
   const int ltidx = threadIdx.x;
   const int ltidy = threadIdx.y;
-  const int workx = blockDim.x;
-  const int worky = blockDim.y;
+
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
   extern __shared__ float tile[];
@@ -287,7 +283,6 @@ template <int RADIUS>
 __global__ void FiniteDifferencesKernel3(float *output, const float *input,
                                         const int dimx, const int dimy,
                                         const int dimz, float** coeff_buffers) {
-  bool validr = true;
   bool validw = true;
   const int outer_dimx = 2*RADIUS + dimx;
   const int outer_dimy = 2*RADIUS + dimy;
@@ -299,8 +294,7 @@ __global__ void FiniteDifferencesKernel3(float *output, const float *input,
   const int gtidy = blockIdx.y * blockDim.y + threadIdx.y;
   const int ltidx = threadIdx.x;
   const int ltidy = threadIdx.y;
-  const int workx = blockDim.x;
-  const int worky = blockDim.y;
+
   static constexpr int DIAM = 2*RADIUS + 1;
   // Handle to thread block group
   cg::thread_block cta = cg::this_thread_block();
