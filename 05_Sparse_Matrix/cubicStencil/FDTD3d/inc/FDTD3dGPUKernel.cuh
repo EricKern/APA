@@ -238,7 +238,6 @@ __global__ void FiniteDifferencesKernel2(float *output, const float *input,
     }
     cg::sync(cta);
 
-    auto xyz_resolv = [&](int x, int y, int z){};
 
     // with every layer we want to calculate partial results of max 2*RADIUS + 1
     // other layers
@@ -362,22 +361,38 @@ __global__ void FiniteDifferencesKernel3(float *output, const float *input,
     }
     cg::sync(cta);
 
+    auto xyz_resolv = [&](int x, int y, int z){};
+
     // with every layer we want to calculate partial results of max 2*RADIUS + 1
     // other layers
-    if(validw){
-      // iterate over 3d cube stencil mask
-      for (int stencil_z = -RADIUS; stencil_z <= RADIUS; stencil_z++){
-        // if out_buffer fill phase
-        if (iz-stencil_z >= RADIUS){
-          for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
-            for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
-              int tile_y = ty+stencil_y;
-              int tile_x = tx+stencil_x;
 
-              out_buf[RADIUS+stencil_z] += tile[tile_y*tile_dimx + tile_x]
-                        * stencil2[RADIUS+stencil_z][RADIUS+stencil_y][RADIUS+stencil_x];
-              
+    // iterate over 3d cube stencil mask
+    for (int stencil_z = -RADIUS; stencil_z <= RADIUS; stencil_z++){
+      // if out_buffer fill phase
+      if (iz-stencil_z >= RADIUS && iz-stencil_z < outer_dimz-RADIUS){
+        for (int stencil_y = -RADIUS; stencil_y <= RADIUS; stencil_y++){
+          for (int stencil_x = -RADIUS; stencil_x <= RADIUS; stencil_x++){
+            int tile_y = ty+stencil_y;
+            int tile_x = tx+stencil_x;
+
+            // find relevant stencil buffer
+            int maskX = RADIUS+stencil_x;
+            int maskY = RADIUS+stencil_y;
+            int maskZ = RADIUS+stencil_z;
+            int stenc_Coord = maskZ * RADIUS * RADIUS + maskY * RADIUS + maskX;
+            float *stencilBuffer = coeff_buffers[stenc_Coord];
+
+
+            if(validw){
+              // find correct element in buffer
+              int elemID = (iz - maskZ) * dimx*dimy + gtidy * dimx + gtidx;
+              float coeff = stencilBuffer[elemID];
+
+              // out_buf[RADIUS+stencil_z] += tile[tile_y*tile_dimx + tile_x]
+              //   * stencil2[RADIUS+stencil_z][RADIUS+stencil_y][RADIUS+stencil_x];
+              out_buf[maskZ] += tile[tile_y*tile_dimx + tile_x] * coeff;
             }
+            
           }
         }
       }
@@ -385,7 +400,8 @@ __global__ void FiniteDifferencesKernel3(float *output, const float *input,
 
     // if out_buffer is no longer in fill phase
     if (iz >= 2*RADIUS){
-      if (validw) output[outputIndex] = out_buf[2*RADIUS];
+      if (validw)
+        output[outputIndex] = out_buf[2*RADIUS];
     }
     // cycle elements
     # pragma unroll 2*RADIUS

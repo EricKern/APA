@@ -223,7 +223,7 @@ bool runTest(int argc, const char **argv) {
   }
 
   // Create coefficients
-  if (use_kernel2 && static_mask){
+  if (use_kernel2){
     // cubic stencil not symmetric
     int coeff_mem_dim = 2 * k_radius_max + 1;
     int coeff_dim = 2*radius + 1;
@@ -241,7 +241,9 @@ bool runTest(int argc, const char **argv) {
       }
     }
 
-  }else if (use_kernel2 && !static_mask){
+    // we need code above be cause we compare against
+    // the static mask stencil version
+    if (!static_mask){
     size_t innerVolumeSize = dimx * dimy * dimz;
     int num_coeff = 2*radius + 1;
     num_coeff = pow(num_coeff, 3);
@@ -255,6 +257,7 @@ bool runTest(int argc, const char **argv) {
       for (size_t j = 0; j < innerVolumeSize; ++j) {
         buffers[i][j] = 0.1f;
       }
+    }
     }
   } else{
     coeff = (float *)malloc((radius + 1) * sizeof(float));
@@ -280,7 +283,7 @@ bool runTest(int argc, const char **argv) {
     printf("fdtdReference2...\n");
     // for benchmarking we havn't used our cube stencil reference since 
     // it is very slow
-    // fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
+    fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
     printf("fdtdReference2 complete\n");
   } else if(use_kernel2 && !static_mask){
     // use GPU version with static mask as reference
