@@ -137,12 +137,19 @@ bool runTest(int argc, const char **argv) {
   // use around half the total memory
   memsize /= 2;
 
-  // Most of our memory use is taken up by the input and output buffers -
-  // two buffers of equal size - and for simplicity the volume is a cube:
-  //   dim = floor( (N/2)^(1/3) )
-  // divide available memory by 2 * sizeof(float) because two buffer
-  // third root to get edge of cube
-  defaultDim = (int)floor(pow((memsize / (2.0 * sizeof(float))), 1.0 / 3.0));
+  if (checkCmdLineFlag(argc, argv, "radius")) {
+    radius = CLAMP(getCmdLineArgumentInt(argc, argv, "radius"), k_radius_min,
+                   k_radius_max);
+  }
+  int stencilMaskElems = pow(2*radius+1, 3);
+  // for one element we need input_buffer + output_buffer + stencilMaskElems
+  int bytes_per_elem = (2 + stencilMaskElems) * sizeof(float);
+
+  // third root gives the edge of the cube
+  defaultDim = (int)floor(pow((memsize / bytes_per_elem), 1.0 / 3.0));
+  
+  // now most of the memory is used for the stencil masks or better said
+  // the banded matrix
 
   // By default, make the volume edge size an integer multiple of 128B to
   // improve performance by coalescing memory accesses, in a real
