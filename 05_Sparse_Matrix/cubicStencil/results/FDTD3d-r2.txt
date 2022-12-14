@@ -1,0 +1,38 @@
+../FDTD3d/FDTD3d.out Starting...
+
+Set-up, based upon target device GMEM size...
+ getTargetDeviceGlobalMemSize
+ cudaGetDeviceCount
+GPU Device 0: "Turing" with compute capability 7.5
+
+ cudaGetDeviceProperties
+ generateRandomData
+
+FDTD on 216 x 216 x 216 volume with symmetric filter radius 2 for 10 timesteps...
+
+fdtdGPU for comparison...
+GPU Device 0: "Turing" with compute capability 7.5
+
+
+comparison complete
+fdtdGPU_BandedMat...
+GPU Device 0: "Turing" with compute capability 7.5
+
+ set block size to 32x16
+ set grid size to 7x14
+ GPU FDTD loop
+	t = 0 launch kernel2
+	t = 1 launch kernel2
+	t = 2 launch kernel2
+	t = 3 launch kernel2
+	t = 4 launch kernel2
+	t = 5 launch kernel2
+	t = 6 launch kernel2
+	t = 7 launch kernel2
+	t = 8 launch kernel2
+	t = 9 launch kernel2
+
+FDTD3d, Throughput = 685.4178 MPoints/s, Time = 0.01470 s, Size = 10077696 Points, NumDevsUsed = 1, Blocksize = 512
+fdtdGPU_BandedMat complete
+
+CompareData (tolerance 0.000100)...

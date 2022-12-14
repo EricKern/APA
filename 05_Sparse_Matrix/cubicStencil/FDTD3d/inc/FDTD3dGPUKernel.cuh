@@ -356,8 +356,6 @@ __global__ void FiniteDifferencesKernel3(float *output, const float *input,
     }
     cg::sync(cta);
 
-    auto xyz_resolv = [&](int x, int y, int z){};
-
     // with every layer we want to calculate partial results of max 2*RADIUS + 1
     // other layers
 

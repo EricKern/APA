@@ -233,22 +233,22 @@ bool runTest(int argc, const char **argv) {
   if (use_kernel2){
     // cubic stencil not symmetric
     int coeff_mem_dim = 2 * k_radius_max + 1;
-    int coeff_dim = 2*radius + 1;
+    int diameter = 2*radius + 1;
     int coeff_total_len = pow(coeff_mem_dim, 3);
     coeff = (float *)calloc(coeff_total_len, sizeof(float));
 
     int c_y_stride = coeff_mem_dim;
     int c_z_stride = pow(coeff_mem_dim, 2);
 
-    for (size_t z = 0; z < coeff_dim; z++) {
-      for (size_t y = 0; y < coeff_dim; y++) {
-        for(size_t x = 0; x < coeff_dim; x++) {
+    for (size_t z = 0; z < diameter; z++) {
+      for (size_t y = 0; y < diameter; y++) {
+        for(size_t x = 0; x < diameter; x++) {
           coeff[z*c_z_stride + y*c_y_stride + x] = 0.01f * (x+y+z);
         }
       }
     }
 
-    // we need code above be cause we compare against
+    // we need code above be cause we compare the following version against
     // the static mask stencil version
     if (!static_mask){
       size_t innerVolumeSize = dimx * dimy * dimz;
@@ -264,6 +264,7 @@ bool runTest(int argc, const char **argv) {
             // each element can have it's very own coeff mask
             buffers[flat] = (float *)malloc(innerVolumeSize * sizeof(float));
             // immediately initialize buffer to same value as in other versions
+            // Only reason for nested loops
             for (size_t j = 0; j < innerVolumeSize; ++j) {
               buffers[flat][j] = 0.01f * (x+y+z);
             }
@@ -293,14 +294,15 @@ bool runTest(int argc, const char **argv) {
   // Execute on the host
   if (use_kernel2 && static_mask){
     printf("fdtdReference2...\n");
-    // for benchmarking we havn't used our cube stencil reference since 
-    // it is very slow
+    // skip comparison in benchmarks
     // fdtdReference2(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
-    printf("fdtdReference2 skiped\n");
+    printf("fdtdReference2 complete\n");
   } else if(use_kernel2 && !static_mask){
     // use GPU version with static mask as reference
+    printf("fdtdGPU for comparison...\n");
     fdtdGPU(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps,
             argc, argv, true);
+    printf("comparison complete\n");
   } else {
     printf("fdtdReference...\n");
     fdtdReference(host_output, input, coeff, dimx, dimy, dimz, radius, timesteps);
