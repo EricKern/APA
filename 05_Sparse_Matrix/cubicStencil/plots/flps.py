@@ -77,8 +77,8 @@ def main(argv):
     radius.reverse()
     radius: np.ndarray = np.array(radius)
 
-    plt.plot(radius, points_staticMask, label="axial stencil", marker = 'o')
-    plt.plot(radius, points_banded, label="cubic stencil", marker = 'o')
+    plt.plot(radius, points_staticMask, label="Static Mask", marker = 'o')
+    plt.plot(radius, points_banded, label="Banded Matrix", marker = 'o')
     # plt.yscale('log')
     plt.xlabel("radius")
     plt.ylabel(unit)
@@ -87,11 +87,11 @@ def main(argv):
 
     name = argv.split(sep="/")[-1]
     name = name.split(sep=".")[0]
-    plt.savefig("./" + "Points")
+    plt.savefig("./" + "Points.pdf")
     plt.clf()
 
     flops_ax = np.zeros(len(points_staticMask))
-    elements_in_ax_stenci = 6*radius+1
+    elements_in_ax_stenci = np.power((2*radius+1),3)
     mul_flops = elements_in_ax_stenci
     add_flops = elements_in_ax_stenci-1
     flops_p_outelem_ax = mul_flops + add_flops
@@ -106,14 +106,15 @@ def main(argv):
     flops_cube = np.multiply(points_banded, flops_p_outelem_cube)
     Gflops_cube = flops_cube/1E3
 
-    plt.plot(radius, Gflops_ax, label="axial stencil",  marker = 'o')
-    plt.plot(radius, Gflops_cube, label="cubic stencil",  marker = 'o')
+    plt.plot(radius, Gflops_ax, label="Static Mask",  marker = 'o')
+    plt.plot(radius, Gflops_cube, label="Banded Matrix",  marker = 'o')
+    plt.yscale('log')
     plt.xlabel("radius")
     plt.ylabel("Gflops/s")
     plt.title("FDTD3d")
     plt.legend()
 
-    plt.savefig("./" + "Gflop")
+    plt.savefig("./" + "Gflop.pdf")
     plt.clf()
 
 
